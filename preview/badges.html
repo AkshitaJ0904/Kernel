@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — pills, badges, status</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group + .group { margin-top: 40px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 16px 20px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); }
+  .row + .row { margin-top: 12px; }
+  .row .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; min-width: 80px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 3px 8px; border-radius: var(--r-2);
+    background: var(--bg-1); border: 1px solid var(--line-2);
+    color: var(--fg-2);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .badge.solid-accent { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+  .badge.solid-warn { background: var(--warn); color: var(--bg-0); border-color: var(--warn); }
+  .badge.solid-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .badge.tint-accent { background: var(--accent-glow); color: var(--accent); border-color: var(--accent-line); }
+  .badge.tint-warn { background: var(--warn-glow); color: var(--warn); border-color: rgba(255,179,71,0.3); }
+  .badge.tint-danger { background: var(--danger-glow); color: var(--danger); border-color: rgba(255,92,92,0.3); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); }
+
+  .stat-block { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line-2); border: 1px solid var(--line-2); border-radius: var(--r-4); overflow: hidden; }
+  .stat-block .item { background: var(--bg-2); padding: 16px 20px; }
+  .stat-block .v { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--fg-1); letter-spacing: -0.01em; }
+  .stat-block .v .accent { color: var(--accent); }
+  .stat-block .l { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 4px; }
+
+  .countdown {
+    display: inline-flex; gap: 8px; font-family: var(--font-mono); font-size: 24px; color: var(--fg-1); letter-spacing: -0.01em; align-items: baseline;
+  }
+  .countdown .seg { background: var(--bg-2); border: 1px solid var(--line-2); padding: 8px 14px; border-radius: var(--r-4); }
+  .countdown .seg .u { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; margin-left: 4px; }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// difficulty pills</div>
+  <div class="row">
+    <span class="lbl">dsa</span>
+    <span class="pill" data-diff="easy">easy</span>
+    <span class="pill" data-diff="medium">medium</span>
+    <span class="pill" data-diff="hard">hard</span>
+    <span class="pill">unrated</span>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// status badges</div>
+  <div class="row">
+    <span class="lbl">solid</span>
+    <span class="badge solid-accent">live</span>
+    <span class="badge solid-warn">soon</span>
+    <span class="badge solid-danger">closed</span>
+    <span class="badge">draft</span>
+  </div>
+  <div class="row">
+    <span class="lbl">tint</span>
+    <span class="badge tint-accent"><span class="dot" style="background: var(--accent);"></span>accepted</span>
+    <span class="badge tint-warn"><span class="dot" style="background: var(--warn);"></span>under review</span>
+    <span class="badge tint-danger"><span class="dot" style="background: var(--danger);"></span>rejected</span>
+    <span class="badge">archived</span>
+  </div>
+  <div class="row">
+    <span class="lbl">tags</span>
+    <span class="badge">rust</span>
+    <span class="badge">distributed</span>
+    <span class="badge">graphs</span>
+    <span class="badge">+ 4 more</span>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// status indicators</div>
+  <div class="row">
+    <span class="lbl">presence</span>
+    <span class="status"><span class="dot" style="background: var(--accent);"></span>online · 1,247 contributors</span>
+    <span class="status"><span class="dot" style="background: var(--warn);"></span>idle</span>
+    <span class="status"><span class="dot" style="background: var(--fg-4);"></span>offline</span>
+  </div>
+  <div class="row">
+    <span class="lbl">build</span>
+    <span class="status"><span class="dot" style="background: var(--accent);"></span>passing</span>
+    <span class="status"><span class="dot" style="background: var(--warn);"></span>building</span>
+    <span class="status"><span class="dot" style="background: var(--danger);"></span>failed</span>
+  </div>
+  <div class="row">
+    <span class="lbl">pr</span>
+    <span class="status" style="color: var(--accent);">[merged]</span>
+    <span class="status" style="color: var(--warn);">[review requested]</span>
+    <span class="status" style="color: var(--fg-3);">[draft]</span>
+    <span class="status" style="color: var(--danger);">[closed]</span>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// stat blocks — dashboard summary</div>
+  <div class="stat-block">
+    <div class="item">
+      <div class="v"><span class="accent">342</span></div>
+      <div class="l">problems solved</div>
+    </div>
+    <div class="item">
+      <div class="v">12<span style="font-size: 14px; color: var(--fg-3);">d</span></div>
+      <div class="l">streak</div>
+    </div>
+    <div class="item">
+      <div class="v">3</div>
+      <div class="l">prs merged</div>
+    </div>
+    <div class="item">
+      <div class="v">$0</div>
+      <div class="l">stipend (yet)</div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// countdown — deadline display</div>
+  <div class="row" style="display: block;">
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 12px;">// gsoc 2026 — applications close in</div>
+    <div class="countdown">
+      <span class="seg">14<span class="u">d</span></span>
+      <span class="seg">03<span class="u">h</span></span>
+      <span class="seg">42<span class="u">m</span></span>
+      <span class="seg" style="color: var(--warn); border-color: rgba(255,179,71,0.3);">17<span class="u">s</span></span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

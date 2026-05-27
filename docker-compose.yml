@@ -1,0 +1,45 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - '8000:8000'
+    environment:
+      DB_HOST: db.izzxozukyajckazvcadi.supabase.co
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: hellokernel123@@
+      DB_PORT: '5432'
+      DB_SSLMODE: require
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: 'True'
+      SECRET_KEY: django-insecure-docker-dev-key
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: kernel-dev-secret
+    depends_on:
+      - backend

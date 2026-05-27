@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — color</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .ttl + .ttl, .group + .group { margin-top: 40px; }
+  .group { }
+  .ramp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border: 1px solid var(--line-2); border-radius: var(--r-4); overflow: hidden; }
+  .swatch { padding: 16px 14px; min-height: 96px; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; }
+  .swatch .name { letter-spacing: 0.14em; text-transform: uppercase; }
+  .swatch .hex  { font-size: 11px; opacity: 0.8; }
+  .accents { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; }
+  .accents .swatch { border: 1px solid var(--line-2); border-radius: var(--r-4); min-height: 120px; }
+  .pair-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .pair-row .chip { padding: 14px 16px; border-radius: var(--r-4); font-family: var(--font-mono); font-size: 12px; min-width: 200px; flex: 1; border: 1px solid var(--line-2); }
+  .pair-row .chip small { display: block; opacity: 0.7; margin-top: 6px; }
+  .legend { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); margin-top: 12px; line-height: 1.7; }
+  .legend b { color: var(--fg-1); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// surface — dark ramp (page → popover)</div>
+  <div class="ramp">
+    <div class="swatch" style="background: var(--bg-0); color: var(--fg-2);"><span class="name">bg-0</span><span class="hex">#0A0B0D · page</span></div>
+    <div class="swatch" style="background: var(--bg-1); color: var(--fg-2);"><span class="name">bg-1</span><span class="hex">#0E1014 · sunken</span></div>
+    <div class="swatch" style="background: var(--bg-2); color: var(--fg-2);"><span class="name">bg-2</span><span class="hex">#11141A · card</span></div>
+    <div class="swatch" style="background: var(--bg-3); color: var(--fg-2);"><span class="name">bg-3</span><span class="hex">#161A21 · hover</span></div>
+    <div class="swatch" style="background: var(--bg-4); color: var(--fg-2);"><span class="name">bg-4</span><span class="hex">#1C212A · popover</span></div>
+    <div class="swatch" style="background: var(--bg-5); color: var(--fg-2);"><span class="name">bg-5</span><span class="hex">#232934 · highest</span></div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// foreground — text ramp</div>
+  <div class="ramp" style="background: var(--bg-2);">
+    <div class="swatch" style="color: var(--fg-1);"><span class="name">fg-1</span><span class="hex">#F5F7FA · primary</span></div>
+    <div class="swatch" style="color: var(--fg-2);"><span class="name">fg-2</span><span class="hex">#B8BFCC · secondary</span></div>
+    <div class="swatch" style="color: var(--fg-3);"><span class="name">fg-3</span><span class="hex">#7A8493 · meta</span></div>
+    <div class="swatch" style="color: var(--fg-4);"><span class="name">fg-4</span><span class="hex">#4D5563 · disabled</span></div>
+    <div class="swatch" style="color: var(--fg-5);"><span class="name">fg-5</span><span class="hex">#2E343F · faint</span></div>
+    <div class="swatch" style="color: var(--line-3); border-left: 1px dashed var(--line-3);"><span class="name">line-3</span><span class="hex">12% white · divider</span></div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// accent — one and only</div>
+  <div class="accents">
+    <div class="swatch" style="background: var(--accent); color: var(--bg-0); min-height: 140px;">
+      <span class="name" style="font-size: 14px; letter-spacing: 0.04em;">accent</span>
+      <div>
+        <div class="hex" style="font-size: 12px;">#39FF7A · electric green</div>
+        <div class="hex" style="font-size: 11px; margin-top: 4px;">use: primary CTA, active state, success</div>
+      </div>
+    </div>
+    <div class="swatch" style="background: var(--accent-dim); color: var(--bg-0);">
+      <span class="name">accent-dim</span><span class="hex">#2BC862 · hover</span>
+    </div>
+    <div class="swatch" style="background: var(--bg-2); color: var(--accent); border: 1px solid var(--accent-line);">
+      <span class="name">accent-line</span><span class="hex">40% · borders</span>
+    </div>
+    <div class="swatch" style="background: var(--accent-glow); color: var(--accent);">
+      <span class="name">accent-glow</span><span class="hex">16% · tints</span>
+    </div>
+  </div>
+  <div class="legend">
+    <b>rule:</b> only one accent. green = "go", "live", "active", "you". if you want a second color, use semantic (warn/danger) — never invent.
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// semantic — narrow palette</div>
+  <div class="pair-row">
+    <div class="chip" style="background: var(--warn-glow); color: var(--warn); border-color: rgba(255,179,71,0.3);">
+      warn · #FFB347
+      <small>deadline countdowns, expiring stipends, contests starting</small>
+    </div>
+    <div class="chip" style="background: var(--danger-glow); color: var(--danger); border-color: rgba(255,92,92,0.3);">
+      danger · #FF5C5C
+      <small>destructive, error, blocked PR, failed test</small>
+    </div>
+    <div class="chip" style="background: rgba(111,184,255,0.1); color: var(--info); border-color: rgba(111,184,255,0.3);">
+      info · #6FB8FF
+      <small>passive notice — never primary</small>
+    </div>
+    <div class="chip" style="background: var(--bg-2); color: var(--fg-1);">
+      <span style="display: inline-flex; align-items: center; gap: 8px;">
+        <span class="pill" data-diff="easy">easy</span>
+        <span class="pill" data-diff="medium">medium</span>
+        <span class="pill" data-diff="hard">hard</span>
+      </span>
+      <small>difficulty pills — desaturated semantics</small>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

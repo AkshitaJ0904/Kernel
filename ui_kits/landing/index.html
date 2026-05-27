@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — compile yourself.</title>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<style>
+  body { margin: 0; }
+  .icon { display: inline-flex; }
+  .icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* nav */
+  .nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(10,11,13,0.85);
+    border-bottom: 1px solid var(--line-2);
+    backdrop-filter: blur(8px); /* exception: only on overlay nav */
+  }
+  .nav-inner {
+    max-width: 1280px; margin: 0 auto; padding: 14px 32px;
+    display: flex; align-items: center; gap: 32px;
+  }
+  .nav .logo { font-family: var(--font-mono); font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+  .nav .logo .slash { color: var(--accent); }
+  .nav-links { display: flex; gap: 4px; margin-left: 24px; }
+  .nav-links a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); padding: 6px 12px; border-radius: var(--r-4); border: 0; }
+  .nav-links a:hover { background: var(--bg-3); color: var(--fg-1); }
+  .nav-cta { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .nav .meta-pill { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); border: 1px solid var(--line-2); padding: 4px 10px; border-radius: var(--r-2); display: inline-flex; align-items: center; gap: 6px; }
+  .nav .meta-pill .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+  /* hero */
+  .hero {
+    background: var(--bg-0);
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    border-bottom: 1px solid var(--line-2);
+    padding: 120px 32px 96px;
+  }
+  .hero-inner { max-width: 1280px; margin: 0 auto; }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em; }
+  .hero h1 { font-size: 96px; line-height: 0.95; letter-spacing: -0.02em; margin: 24px 0 0; max-width: 1100px; }
+  .hero h1 .slash { color: var(--accent); }
+  .hero h1 .cur::after { content: '█'; color: var(--accent); margin-left: 8px; animation: kernel-blink 1.06s steps(1) infinite; }
+  .hero .lede { font-size: 20px; color: var(--fg-2); margin-top: 32px; max-width: 720px; line-height: 1.5; font-family: var(--font-body); text-wrap: pretty; }
+  .hero .lede b { color: var(--fg-1); font-weight: 500; }
+  .hero .ctas { display: flex; gap: 12px; margin-top: 40px; align-items: center; }
+  .hero .ctas .btn-lg { font-size: 14px; padding: 12px 18px; }
+  .hero .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 80px; border-top: 1px solid var(--line-2); }
+  .hero .stat-strip .item { padding: 28px 0; border-left: 1px solid var(--line-2); padding-left: 24px; }
+  .hero .stat-strip .item:first-child { border-left: 0; padding-left: 0; }
+  .hero .stat-strip .v { font-family: var(--font-mono); font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
+  .hero .stat-strip .v .accent { color: var(--accent); }
+  .hero .stat-strip .l { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.16em; margin-top: 6px; }
+
+  /* section common */
+  .section { padding: 96px 32px; border-bottom: 1px solid var(--line-2); }
+  .section-inner { max-width: 1280px; margin: 0 auto; }
+  .section-eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.18em; }
+  .section-title { font-size: 56px; line-height: 1; letter-spacing: -0.02em; margin: 16px 0 20px; max-width: 880px; }
+  .section-title .slash { color: var(--accent); }
+  .section-lede { font-size: 17px; color: var(--fg-2); max-width: 640px; line-height: 1.55; }
+
+  /* pillars */
+  .pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 56px; border-top: 1px solid var(--line-2); }
+  .pillar {
+    padding: 32px 32px 32px 0;
+    padding-left: 32px;
+    border-left: 1px solid var(--line-2);
+    display: flex; flex-direction: column;
+    min-height: 420px;
+    position: relative;
+    transition: background var(--dur-2) var(--ease);
+  }
+  .pillar:first-child { border-left: 0; padding-left: 0; }
+  .pillar:hover { background: rgba(57,255,122,0.02); }
+  .pillar .num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em; }
+  .pillar h3 { font-size: 32px; margin: 12px 0 16px; line-height: 1.05; }
+  .pillar h3 .slash { color: var(--accent); }
+  .pillar p { font-size: 15px; color: var(--fg-2); line-height: 1.55; max-width: 360px; }
+  .pillar ul { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .pillar li { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); display: flex; gap: 10px; align-items: flex-start; }
+  .pillar li::before { content: '→'; color: var(--accent); }
+  .pillar .stat { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); margin-top: auto; padding-top: 24px; border-top: 1px solid var(--line-1); }
+  .pillar .stat b { color: var(--fg-1); font-weight: 500; }
+  .pillar .arrow { position: absolute; top: 32px; right: 0; font-family: var(--font-mono); font-size: 14px; color: var(--fg-3); }
+
+  /* programs */
+  .programs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 56px; }
+  .program-card {
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4);
+    overflow: hidden; display: flex; flex-direction: column;
+    transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
+  }
+  .program-card:hover { border-color: var(--line-4); background: var(--bg-3); }
+  .program-card .stripe { height: 4px; }
+  .program-card .body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+  .program-card .row-a { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .program-card h4 { font-size: 22px; margin: 8px 0 0; line-height: 1.1; }
+  .program-card .stipend { font-family: var(--font-mono); font-size: 13px; color: var(--accent); white-space: nowrap; padding-top: 4px; }
+  .program-card p { font-size: 14px; color: var(--fg-2); margin-top: 12px; line-height: 1.5; }
+  .program-card .deadline { font-family: var(--font-mono); font-size: 12px; color: var(--warn); margin-top: 16px; display: flex; align-items: center; gap: 8px; }
+  .program-card .deadline .dot { width: 6px; height: 6px; background: var(--warn); border-radius: 50%; }
+  .program-card .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line-1); }
+  .program-card .stats .v { font-family: var(--font-mono); font-size: 18px; color: var(--fg-1); font-weight: 600; }
+  .program-card .stats .l { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 2px; }
+
+  /* method (numbered editorial) */
+  .method-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 56px; border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .method-step { padding: 32px 24px 32px 32px; border-left: 1px solid var(--line-2); }
+  .method-step:first-child { border-left: 0; padding-left: 0; }
+  .method-step .n { font-family: var(--font-mono); font-size: 56px; line-height: 1; color: var(--fg-5); font-weight: 700; letter-spacing: -0.02em; }
+  .method-step h4 { font-size: 18px; margin: 16px 0 10px; }
+  .method-step p { font-size: 14px; color: var(--fg-2); line-height: 1.5; }
+
+  /* heatmap-strip section */
+  .signal {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    margin-top: 56px;
+  }
+  .signal .terminal {
+    background: #050608; border: 1px solid var(--line-2); border-radius: var(--r-4);
+    padding: 18px 22px; font-family: var(--font-mono); font-size: 13px;
+    line-height: 1.6;
+  }
+  .signal .terminal .prompt { color: var(--accent); }
+  .signal .terminal .out { color: var(--fg-2); }
+  .signal .terminal .dim { color: var(--fg-4); }
+  .signal .terminal .ok { color: var(--accent); }
+  .signal h3 { font-size: 36px; line-height: 1.05; }
+  .signal h3 .slash { color: var(--accent); }
+  .signal p { font-size: 15px; color: var(--fg-2); margin-top: 16px; line-height: 1.55; }
+
+  /* testimonials */
+  .testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 56px; }
+  .test-card { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); padding: 24px; display: flex; flex-direction: column; min-height: 240px; }
+  .test-card .quote { font-size: 16px; color: var(--fg-1); line-height: 1.5; flex: 1; }
+  .test-card .who { display: flex; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line-1); }
+  .test-card .av { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-3); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; }
+  .test-card .who .name { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .test-card .who .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+
+  /* cta strip */
+  .cta-strip {
+    background: var(--bg-0);
+    background-image:
+      linear-gradient(to right, rgba(57,255,122,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(57,255,122,0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+    padding: 96px 32px;
+    border-bottom: 1px solid var(--line-2);
+    text-align: center;
+  }
+  .cta-strip h2 { font-size: 64px; line-height: 1; letter-spacing: -0.02em; }
+  .cta-strip h2 .slash { color: var(--accent); }
+  .cta-strip h2 .cur::after { content: '█'; color: var(--accent); margin-left: 8px; animation: kernel-blink 1.06s steps(1) infinite; }
+  .cta-strip p { font-size: 16px; color: var(--fg-2); margin-top: 16px; }
+  .cta-strip .ctas { display: flex; gap: 12px; justify-content: center; margin-top: 32px; }
+
+  /* footer */
+  .footer { background: var(--bg-0); padding: 64px 32px 40px; }
+  .footer-inner { max-width: 1280px; margin: 0 auto; }
+  .footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 48px; border-bottom: 1px solid var(--line-2); }
+  .footer .logo { font-family: var(--font-mono); font-weight: 800; font-size: 24px; }
+  .footer .logo .slash { color: var(--accent); }
+  .footer .tag { font-family: var(--font-mono); font-size: 13px; color: var(--fg-3); margin-top: 12px; }
+  .footer h5 { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.16em; font-weight: 500; margin: 0 0 16px; }
+  .footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer li a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); border: 0; }
+  .footer li a:hover { color: var(--accent); }
+  .footer-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.14em; }
+  .footer-meta .ascii { color: var(--fg-5); white-space: nowrap; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <span class="logo">kernel<span class="slash">/</span></span>
+    <span class="meta-pill"><span class="dot"></span>v0.4 · 1,247 online</span>
+    <div class="nav-links">
+      <a>arena</a>
+      <a>workshop</a>
+      <a>war room</a>
+      <a>contributors</a>
+      <a>changelog</a>
+    </div>
+    <div class="nav-cta">
+      <button class="btn btn-ghost">sign in</button>
+      <button class="btn btn-primary">&gt; start free</button>
+    </div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">// for cs undergrads in india · gsoc cohort '26 in prep</span>
+    <h1>compile<br/>yourself<span class="slash">.</span><span class="cur"></span></h1>
+    <p class="lede">DSA practice, language tracks, and open-source program prep — under one toolchain. Built by engineers who got into <b>GSoC, C4GT, LFX, ESoC</b>, and remember which parts of the journey actually moved the needle.</p>
+    <div class="ctas">
+      <button class="btn btn-primary btn-lg">&gt; start free</button>
+      <button class="btn btn-lg">browse programs</button>
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); margin-left: 12px;">no credit card. takes 30s.</span>
+    </div>
+    <div class="stat-strip">
+      <div class="item">
+        <div class="v"><span class="accent">1,247</span></div>
+        <div class="l">contributors</div>
+      </div>
+      <div class="item">
+        <div class="v">312</div>
+        <div class="l">prs merged</div>
+      </div>
+      <div class="item">
+        <div class="v">84</div>
+        <div class="l">stipends earned</div>
+      </div>
+      <div class="item">
+        <div class="v">$0.48m</div>
+        <div class="l">paid out '25</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <span class="section-eyebrow">// 02 · pillars</span>
+    <h2 class="section-title">three worlds<span class="slash">/</span> one toolchain.</h2>
+    <p class="section-lede">DSA, engineering craft, and open-source prep are the same skill at different timescales. We treat them that way.</p>
+
+    <div class="pillar-grid">
+      <div class="pillar">
+        <span class="arrow">→</span>
+        <span class="num">// pillar_01 / arena</span>
+        <h3>kernel<span class="slash">/</span>dsa</h3>
+        <p>Pattern-first DSA. Topic trees that teach <em>recognition</em>, not just solutions. Daily problems calibrated to your level.</p>
+        <ul>
+          <li>2,800+ problems across 24 patterns</li>
+          <li>contest mode · weekly leaderboards</li>
+          <li>streak tracking that doesn't punish breaks</li>
+          <li>spaced-repetition for solved problems</li>
+        </ul>
+        <div class="stat">avg. user solves <b>11 problems / week</b> after 30 days</div>
+      </div>
+
+      <div class="pillar">
+        <span class="arrow">→</span>
+        <span class="num">// pillar_02 / workshop</span>
+        <h3>kernel<span class="slash">/</span>dev</h3>
+        <p>Engineering as craft. Pick a language. Pick a system. Build something that breaks. Then fix it.</p>
+        <ul>
+          <li>tracks: rust, go, c++, python, ts</li>
+          <li>systems: dbs, networks, distributed</li>
+          <li>18 ship-it projects with code review</li>
+          <li>own your repo · own your portfolio</li>
+        </ul>
+        <div class="stat">median first <b>real PR shipped</b> in 23 days</div>
+      </div>
+
+      <div class="pillar">
+        <span class="arrow">→</span>
+        <span class="num">// pillar_03 / war room</span>
+        <h3>kernel<span class="slash">/</span>oss</h3>
+        <p>Open-source mission control. The unfair advantage your seniors had — written down.</p>
+        <ul>
+          <li>6 programs · gsoc, c4gt, lfx, esoc, sob, outreachy</li>
+          <li>312 orgs · filtered by your stack</li>
+          <li>proposal templates from accepted students</li>
+          <li>mentor-list, mailing-list, contributing-md guides</li>
+        </ul>
+        <div class="stat">cohort '25 acceptance rate: <b>34%</b> (vs. 22% global)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <span class="section-eyebrow">// 03 · programs / war room</span>
+    <h2 class="section-title">six programs<span class="slash">/</span> one tracker.</h2>
+    <p class="section-lede">Deadlines, slot counts, accepted-proposal libraries, and org filters — for every program that matters in India.</p>
+
+    <div class="programs-grid">
+      <div class="program-card">
+        <div class="stripe" style="background: var(--accent);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_01</span>
+              <h4>google summer of code</h4>
+            </div>
+            <span class="stipend">$3,000–$6,600</span>
+          </div>
+          <p>12-week paid open-source mentorship with ~200 orgs. The flagship.</p>
+          <div class="deadline"><span class="dot"></span>opens in 14d 03h</div>
+          <div class="stats">
+            <div><div class="v">184</div><div class="l">orgs</div></div>
+            <div><div class="v">1,572</div><div class="l">slots '25</div></div>
+            <div><div class="v">23%</div><div class="l">accept</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <div class="stripe" style="background: var(--warn);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_02</span>
+              <h4>code for govtech</h4>
+            </div>
+            <span class="stipend">₹70,000</span>
+          </div>
+          <p>India-only. Build for DPI: Aadhaar, ONDC, DIKSHA, Beckn.</p>
+          <div class="deadline"><span class="dot"></span>closes in 6d 14h</div>
+          <div class="stats">
+            <div><div class="v">42</div><div class="l">orgs</div></div>
+            <div><div class="v">120</div><div class="l">slots</div></div>
+            <div><div class="v">31%</div><div class="l">accept</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <div class="stripe" style="background: var(--accent);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_03</span>
+              <h4>lfx mentorship</h4>
+            </div>
+            <span class="stipend">$3,000</span>
+          </div>
+          <p>Linux Foundation projects. kubernetes, envoy, opentelemetry.</p>
+          <div class="deadline"><span class="dot" style="background: var(--fg-4);"></span>spring '26 cohort</div>
+          <div class="stats">
+            <div><div class="v">93</div><div class="l">projects</div></div>
+            <div><div class="v">280</div><div class="l">slots/yr</div></div>
+            <div><div class="v">3</div><div class="l">cohorts/yr</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <div class="stripe" style="background: var(--accent);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_04</span>
+              <h4>summer of bitcoin</h4>
+            </div>
+            <span class="stipend">$3,000</span>
+          </div>
+          <p>Bitcoin core, lightning, layer-2. Heavy systems, light dependencies.</p>
+          <div class="deadline"><span class="dot"></span>opens in 31d</div>
+          <div class="stats">
+            <div><div class="v">14</div><div class="l">projects</div></div>
+            <div><div class="v">40</div><div class="l">slots</div></div>
+            <div><div class="v">12%</div><div class="l">accept</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <div class="stripe" style="background: var(--warn);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_05</span>
+              <h4>esoc — ethereum</h4>
+            </div>
+            <span class="stipend">$3,000–$5,000</span>
+          </div>
+          <p>Ethereum ecosystem — clients, l2s, devtools, research.</p>
+          <div class="deadline"><span class="dot"></span>closes in 9d</div>
+          <div class="stats">
+            <div><div class="v">28</div><div class="l">orgs</div></div>
+            <div><div class="v">60</div><div class="l">slots</div></div>
+            <div><div class="v">19%</div><div class="l">accept</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <div class="stripe" style="background: var(--fg-5);"></div>
+        <div class="body">
+          <div class="row-a">
+            <div>
+              <span class="eyebrow">// program_06</span>
+              <h4>outreachy</h4>
+            </div>
+            <span class="stipend">$7,000</span>
+          </div>
+          <p>For underrepresented contributors. 13-week internships.</p>
+          <div class="deadline"><span class="dot" style="background: var(--fg-4);"></span>may '26 cohort</div>
+          <div class="stats">
+            <div><div class="v">~50</div><div class="l">orgs</div></div>
+            <div><div class="v">~80</div><div class="l">slots</div></div>
+            <div><div class="v">2</div><div class="l">cohorts/yr</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <span class="section-eyebrow">// 04 · the method</span>
+    <h2 class="section-title">read<span class="slash">/</span> ship<span class="slash">/</span> propose<span class="slash">/</span> repeat.</h2>
+    <p class="section-lede">Selection isn't a lottery. It's a four-step protocol with a known success rate. Run the loop.</p>
+
+    <div class="method-grid">
+      <div class="method-step">
+        <div class="n">01</div>
+        <h4>read the source</h4>
+        <p>Pick three orgs. Read their CONTRIBUTING.md. Lurk on the dev mailing list. Get a feel for the codebase shape.</p>
+      </div>
+      <div class="method-step">
+        <div class="n">02</div>
+        <h4>ship one tiny pr</h4>
+        <p>A typo fix counts. The point: prove you can land code in their tree. We'll surface their good-first-issues for you.</p>
+      </div>
+      <div class="method-step">
+        <div class="n">03</div>
+        <h4>draft the proposal</h4>
+        <p>Use templates from accepted students. Cut your scope by 40%. Run it past a mentor before submitting.</p>
+      </div>
+      <div class="method-step">
+        <div class="n">04</div>
+        <h4>iterate publicly</h4>
+        <p>Stay active during selection. Comment on PRs. Reply on the mailing list. The org is watching.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <span class="section-eyebrow">// 05 · signal</span>
+    <h2 class="section-title">your year<span class="slash">/</span> in commits.</h2>
+
+    <div class="signal">
+      <div>
+        <h3>track everything<span class="slash">/</span> show the work.</h3>
+        <p>Every solved problem, every PR, every proposal draft is a line in your commit log. Profile pages are reverse-chronological — recruiters and mentors see what you've shipped, not what you claim.</p>
+        <p>Streaks count weekdays. Breaks don't punish. Quality &gt; quantity.</p>
+        <div style="display: flex; gap: 12px; margin-top: 32px;">
+          <button class="btn btn-primary">&gt; see a profile</button>
+          <button class="btn">read the methodology</button>
+        </div>
+      </div>
+      <div class="terminal">
+        <div><span class="prompt">$</span> git log --oneline --author=aarav.k --since=1.week</div>
+        <div class="out"><span class="ok">a3f1c2e</span> solved · arrays/two-pointer/3sum</div>
+        <div class="out"><span class="ok">b8e2440</span> started · rust/04-lifetimes</div>
+        <div class="out"><span class="ok">9d12fa1</span> opened pr · apache/airflow#41281</div>
+        <div class="out"><span class="ok">e0b7c3a</span> draft · gsoc proposal — apache nuttx</div>
+        <div class="out"><span class="ok">c45a190</span> streak +1 · 12 days</div>
+        <div class="out"><span class="ok">f117b0b</span> solved · graphs/topo/course-schedule-ii</div>
+        <div class="out"><span class="ok">42aabbc</span> contest · weekly #420 · rank 184/12k</div>
+        <div class="dim">─ 7 commits · 12d streak · 31d longest <span class="cursor-blink"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <span class="section-eyebrow">// 06 · alumni</span>
+    <h2 class="section-title">hear it from<span class="slash">/</span> the cohort.</h2>
+
+    <div class="testimonials">
+      <div class="test-card">
+        <p class="quote">"I'd grinded leetcode for 2 years and still couldn't write a real PR. kernel/ made me read source code. The proposal templates were the unlock — apache accepted me on the third try."</p>
+        <div class="who">
+          <div class="av">AK</div>
+          <div>
+            <div class="name">aarav kulkarni</div>
+            <div class="meta">@aaravk · iit bombay · gsoc '25 · apache</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card">
+        <p class="quote">"The roadmap told me to ship before applying. I had three open PRs to Beckn before I even submitted. Got picked. Stipend funded my last semester."</p>
+        <div class="who">
+          <div class="av">PS</div>
+          <div>
+            <div class="name">priya s.</div>
+            <div class="meta">@priyas · nit trichy · c4gt '25 · beckn</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card">
+        <p class="quote">"DSA grind without contest mode is just busywork. The streak counter, the contest leaderboard, and friends shipping in the same channel — that's the difference."</p>
+        <div class="who">
+          <div class="av">RM</div>
+          <div>
+            <div class="name">rohit m.</div>
+            <div class="meta">@rohitm · iiit hyderabad · ms goldman '26</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>start now<span class="cur"></span></h2>
+  <p>open the terminal. type <code>kernel init</code>. ship something today.</p>
+  <div class="ctas">
+    <button class="btn btn-primary btn-lg" style="font-size: 14px; padding: 12px 18px;">&gt; start free</button>
+    <button class="btn btn-lg" style="font-size: 14px; padding: 12px 18px;">talk to a mentor</button>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-cols">
+      <div>
+        <div class="logo">kernel<span class="slash">/</span></div>
+        <p class="tag">compile yourself.</p>
+        <p class="tag" style="margin-top: 24px; max-width: 320px;">Built in bangalore by engineers who got into gsoc, c4gt, lfx — and remember which parts mattered.</p>
+      </div>
+      <div>
+        <h5>// pillars</h5>
+        <ul><li><a>arena (dsa)</a></li><li><a>workshop (dev)</a></li><li><a>war room (oss)</a></li></ul>
+      </div>
+      <div>
+        <h5>// programs</h5>
+        <ul><li><a>gsoc</a></li><li><a>c4gt</a></li><li><a>lfx</a></li><li><a>esoc</a></li><li><a>sob</a></li><li><a>outreachy</a></li></ul>
+      </div>
+      <div>
+        <h5>// company</h5>
+        <ul><li><a>about</a></li><li><a>changelog</a></li><li><a>blog</a></li><li><a>careers</a></li></ul>
+      </div>
+      <div>
+        <h5>// connect</h5>
+        <ul><li><a>discord</a></li><li><a>github</a></li><li><a>twitter</a></li><li><a>contact</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <span>© 2026 kernel labs · made in bangalore</span>
+      <span class="ascii">// ─────────────────────────────────────────────────────────────────────────────────────</span>
+      <span>v0.4.0 · build 9d12fa1</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — cards</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group + .group { margin-top: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+  /* problem card */
+  .card-problem { padding: 16px; }
+  .card-problem .eyebrow-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .card-problem h4 { font-size: 18px; margin: 0; }
+  .card-problem .meta { display: flex; gap: 12px; margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); align-items: center; }
+  .card-problem .meta .dot { width: 4px; height: 4px; background: var(--fg-4); border-radius: 50%; }
+
+  /* program card */
+  .card-program { padding: 0; overflow: hidden; }
+  .card-program .body { padding: 16px; }
+  .card-program .stripe { height: 4px; background: var(--accent); }
+  .card-program .stripe.warn { background: var(--warn); }
+  .card-program .stripe.muted { background: var(--fg-5); }
+  .card-program .row-a { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .card-program h4 { font-size: 18px; margin: 4px 0 0; }
+  .card-program .stipend { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .card-program .deadline { font-family: var(--font-mono); font-size: 12px; color: var(--warn); display: flex; align-items: center; gap: 6px; }
+  .card-program .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+  .card-program .stats .stat { font-family: var(--font-mono); }
+  .card-program .stats .v { color: var(--fg-1); font-size: 16px; font-weight: 600; }
+  .card-program .stats .l { color: var(--fg-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; }
+
+  /* roadmap card */
+  .card-roadmap { padding: 16px; border-left: 1px solid var(--accent); }
+  .card-roadmap .progress { height: 4px; background: var(--bg-1); border-radius: 2px; overflow: hidden; margin-top: 12px; }
+  .card-roadmap .progress > div { height: 100%; background: var(--accent); }
+  .card-roadmap .pct { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); margin-top: 8px; display: flex; justify-content: space-between; }
+
+  /* contributor card */
+  .card-contrib { padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
+  .card-contrib .av { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); }
+  .card-contrib .name { font-family: var(--font-mono); font-size: 14px; color: var(--fg-1); }
+  .card-contrib .handle { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); margin-bottom: 8px; }
+  .card-contrib .quote { font-size: 13px; color: var(--fg-2); line-height: 1.5; }
+
+  /* commit row */
+  .commit-list { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); }
+  .commit-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line-1); align-items: center; font-family: var(--font-mono); font-size: 12px; }
+  .commit-row:first-child { border-top: 0; }
+  .commit-row .hash { color: var(--accent); }
+  .commit-row .msg { color: var(--fg-1); }
+  .commit-row .when { color: var(--fg-3); }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// problem card — dsa</div>
+  <div class="grid">
+    <div class="card card-problem">
+      <div class="eyebrow-row">
+        <span class="eyebrow">// arrays/two_pointer</span>
+        <span class="pill" data-diff="medium">medium</span>
+      </div>
+      <h4>3sum</h4>
+      <p style="font-size: 13px; margin-top: 8px;">Given an integer array <code>nums</code>, return all triplets <code>[i, j, k]</code> such that <code>nums[i]+nums[j]+nums[k]==0</code>.</p>
+      <div class="meta">
+        <span>solved 12,481</span><span class="dot"></span>
+        <span>acceptance 42%</span><span class="dot"></span>
+        <span>your time: 18m</span>
+      </div>
+    </div>
+
+    <div class="card card-problem" style="border-left: 1px solid var(--accent);">
+      <div class="eyebrow-row">
+        <span class="eyebrow">// graphs/topo</span>
+        <span class="pill" data-diff="hard">hard</span>
+      </div>
+      <h4>course schedule ii</h4>
+      <p style="font-size: 13px; margin-top: 8px; color: var(--fg-2);">Return the order in which to take courses given prerequisites. Detect cycles → return empty.</p>
+      <div class="meta">
+        <span style="color: var(--accent);">[in progress]</span><span class="dot"></span>
+        <span>3 attempts</span><span class="dot"></span>
+        <span>last: 2h ago</span>
+      </div>
+    </div>
+
+    <div class="card card-problem" style="opacity: 0.7;">
+      <div class="eyebrow-row">
+        <span class="eyebrow">// trees/dfs</span>
+        <span class="pill" data-diff="easy">easy</span>
+      </div>
+      <h4>maximum depth of binary tree <span style="color: var(--accent);">✓</span></h4>
+      <p style="font-size: 13px; margin-top: 8px; color: var(--fg-3);">Solved · 4ms · 12.3 MB · beats 94%</p>
+      <div class="meta">
+        <span style="color: var(--accent);">solved · 2d ago</span><span class="dot"></span>
+        <span>1st try</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// program card — open source</div>
+  <div class="grid">
+    <div class="card card-program">
+      <div class="stripe"></div>
+      <div class="body">
+        <div class="row-a">
+          <div>
+            <span class="eyebrow">// program_01</span>
+            <h4>google summer of code</h4>
+          </div>
+          <span class="stipend">$3,000–$6,600</span>
+        </div>
+        <p style="font-size: 13px;">12-week paid open-source mentorship. ~200 orgs. The flagship program.</p>
+        <div class="deadline">
+          <span style="display: inline-block; width: 8px; height: 8px; background: var(--warn); border-radius: 50%;"></span>
+          applications open in 14d 03h
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="v">184</div><div class="l">orgs</div></div>
+          <div class="stat"><div class="v">1,572</div><div class="l">slots '25</div></div>
+          <div class="stat"><div class="v">23%</div><div class="l">accept rate</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-program">
+      <div class="stripe warn"></div>
+      <div class="body">
+        <div class="row-a">
+          <div>
+            <span class="eyebrow">// program_02</span>
+            <h4>code for govtech</h4>
+          </div>
+          <span class="stipend">₹70,000</span>
+        </div>
+        <p style="font-size: 13px;">India-specific. Build for DPI: Aadhaar, ONDC, DIKSHA, Beckn.</p>
+        <div class="deadline">
+          <span style="display: inline-block; width: 8px; height: 8px; background: var(--warn); border-radius: 50%;"></span>
+          closes in 6d 14h
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="v">42</div><div class="l">orgs</div></div>
+          <div class="stat"><div class="v">120</div><div class="l">slots</div></div>
+          <div class="stat"><div class="v">~31%</div><div class="l">accept</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-program">
+      <div class="stripe muted"></div>
+      <div class="body">
+        <div class="row-a">
+          <div>
+            <span class="eyebrow">// program_03</span>
+            <h4>lfx mentorship</h4>
+          </div>
+          <span class="stipend" style="color: var(--fg-3);">$3,000</span>
+        </div>
+        <p style="font-size: 13px; color: var(--fg-3);">Linux Foundation projects: kubernetes, envoy, opentelemetry.</p>
+        <div class="deadline" style="color: var(--fg-3);">
+          <span style="display: inline-block; width: 8px; height: 8px; background: var(--fg-4); border-radius: 50%;"></span>
+          next cohort: spring '26
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="v" style="color: var(--fg-2);">93</div><div class="l">projects</div></div>
+          <div class="stat"><div class="v" style="color: var(--fg-2);">280</div><div class="l">slots/yr</div></div>
+          <div class="stat"><div class="v" style="color: var(--fg-2);">3 cohorts</div><div class="l">/year</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// roadmap card — workshop</div>
+  <div class="grid">
+    <div class="card card-roadmap">
+      <span class="eyebrow">// track / rust</span>
+      <h4 style="margin-top: 6px; font-size: 18px;">rust / 04 — lifetimes</h4>
+      <p style="font-size: 13px; margin-top: 8px;">Borrow checker basics. Lifetime annotations. Static vs explicit. Examples in real code.</p>
+      <div class="progress"><div style="width: 62%;"></div></div>
+      <div class="pct"><span>5 / 8 modules</span><span>~2h remaining</span></div>
+    </div>
+    <div class="card card-roadmap" style="border-left: 1px solid var(--line-3);">
+      <span class="eyebrow">// track / systems</span>
+      <h4 style="margin-top: 6px; font-size: 18px;">build a kv store in 200 lines</h4>
+      <p style="font-size: 13px; margin-top: 8px;">B-tree on disk, write-ahead log, snapshot recovery. Ships as a library + CLI.</p>
+      <div class="progress"><div style="width: 12%; background: var(--fg-3);"></div></div>
+      <div class="pct"><span>started</span><span>est 8h</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// contributor — testimonial</div>
+  <div class="grid">
+    <div class="card card-contrib">
+      <div class="av">AK</div>
+      <div>
+        <div class="name">aarav kulkarni</div>
+        <div class="handle">@aaravk · iit bombay · gsoc '25 with apache</div>
+        <p class="quote">"I'd grinded leetcode for 2 years and still couldn't write a real PR. kernel/ made me read source code. The proposal templates were the unlock — apache accepted me on the third try."</p>
+      </div>
+    </div>
+    <div class="card card-contrib">
+      <div class="av">PS</div>
+      <div>
+        <div class="name">priya s.</div>
+        <div class="handle">@priyas · nit trichy · c4gt '25 — beckn</div>
+        <p class="quote">"The roadmap told me to ship before applying. I had three open PRs to Beckn before I even submitted. Got picked. Stipend funded my last semester."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// commit log — activity feed</div>
+  <div class="commit-list">
+    <div class="commit-row"><span class="hash">a3f1c2e</span><span class="msg">solved · arrays/two-pointer/3sum</span><span class="when">12m ago</span></div>
+    <div class="commit-row"><span class="hash">b8e2440</span><span class="msg">started track · rust/04-lifetimes</span><span class="when">2h ago</span></div>
+    <div class="commit-row"><span class="hash">9d12fa1</span><span class="msg">opened pr · apache/airflow#41281</span><span class="when">1d ago</span></div>
+    <div class="commit-row"><span class="hash">e0b7c3a</span><span class="msg">draft · gsoc proposal — apache nuttx</span><span class="when">2d ago</span></div>
+    <div class="commit-row"><span class="hash">c45a190</span><span class="msg">streak +1 · 12 days</span><span class="when">3d ago</span></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,327 @@
+/* ============================================================
+   kernel/ — design tokens
+   colors, typography, spacing, radii, shadows, motion
+   ============================================================ */
+
+/* ---------- Fonts (Google Fonts CDN — see README substitution flag) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Geist:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ============================================================
+     COLOR — surfaces (dark-first)
+     ============================================================ */
+  --bg-0: #0A0B0D;          /* page background, near-black with blue undertone */
+  --bg-1: #0E1014;          /* sunken (input, inset) */
+  --bg-2: #11141A;          /* card / panel */
+  --bg-3: #161A21;          /* card hover */
+  --bg-4: #1C212A;          /* elevated / popover */
+  --bg-5: #232934;          /* highest surface */
+
+  /* ============================================================
+     COLOR — foreground (text)
+     ============================================================ */
+  --fg-1: #F5F7FA;          /* primary text */
+  --fg-2: #B8BFCC;          /* secondary text */
+  --fg-3: #7A8493;          /* tertiary / metadata */
+  --fg-4: #4D5563;          /* quaternary / disabled-feel */
+  --fg-5: #2E343F;          /* faintest, decorative */
+
+  /* ============================================================
+     COLOR — borders & lines
+     ============================================================ */
+  --line-1: rgba(255, 255, 255, 0.06);   /* faintest grid lines */
+  --line-2: rgba(255, 255, 255, 0.08);   /* default card border */
+  --line-3: rgba(255, 255, 255, 0.12);   /* divider */
+  --line-4: rgba(255, 255, 255, 0.16);   /* hover border */
+  --line-5: rgba(255, 255, 255, 0.24);   /* strong divider */
+
+  /* ============================================================
+     COLOR — accent (electric green) and semantics
+     ============================================================ */
+  --accent: #39FF7A;         /* primary accent — terminal green */
+  --accent-dim: #2BC862;     /* darker for backgrounds */
+  --accent-glow: rgba(57, 255, 122, 0.16);
+  --accent-line: rgba(57, 255, 122, 0.4);
+
+  --warn: #FFB347;           /* amber — deadlines, urgency only */
+  --warn-dim: #C88A2E;
+  --warn-glow: rgba(255, 179, 71, 0.14);
+
+  --danger: #FF5C5C;         /* destructive / error */
+  --danger-glow: rgba(255, 92, 92, 0.14);
+
+  --info: #6FB8FF;           /* informational, used sparingly */
+
+  /* difficulty pills (DSA) */
+  --diff-easy: #5EE6A3;
+  --diff-med: #FFB347;
+  --diff-hard: #FF7A7A;
+
+  /* ============================================================
+     TYPOGRAPHY — families
+     ============================================================ */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-mono);   /* headings = mono */
+  --font-body: var(--font-sans);
+
+  /* type scale — 1.25 modular, with editorial breaks */
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-32: 32px;
+  --fs-40: 40px;
+  --fs-48: 48px;
+  --fs-64: 64px;
+  --fs-96: 96px;
+
+  /* line heights */
+  --lh-tight: 1.05;
+  --lh-snug: 1.2;
+  --lh-normal: 1.5;
+  --lh-loose: 1.7;
+
+  /* tracking */
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.08em;
+  --tracking-widest: 0.16em;
+
+  /* ============================================================
+     SPACING — 4px base
+     ============================================================ */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-32: 128px;
+
+  /* ============================================================
+     RADII — sharp by default
+     ============================================================ */
+  --r-0: 0px;       /* editorial blocks, hero */
+  --r-2: 2px;       /* chips, pills */
+  --r-4: 4px;       /* cards, inputs, buttons */
+  --r-6: 6px;       /* exceptional only */
+  --r-full: 9999px; /* avatars, dots */
+
+  /* ============================================================
+     SHADOWS — almost none
+     ============================================================ */
+  --shadow-none: none;
+  --shadow-input-focus: inset 0 0 0 1px var(--accent);
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--line-2);
+  --glow-accent: 0 0 0 3px var(--accent-glow);
+  --glow-warn: 0 0 0 3px var(--warn-glow);
+
+  /* ============================================================
+     MOTION
+     ============================================================ */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-1: 80ms;
+  --dur-2: 120ms;     /* default */
+  --dur-3: 200ms;     /* upper bound */
+}
+
+/* ============================================================
+   SEMANTIC ELEMENTS — opinionated defaults
+   ============================================================ */
+html, body {
+  background: var(--bg-0);
+  color: var(--fg-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* headings — mono, tight tracking */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  margin: 0;
+  color: var(--fg-1);
+}
+
+h1 { font-size: var(--fs-64); }
+h2 { font-size: var(--fs-40); }
+h3 { font-size: var(--fs-28); }
+h4 { font-size: var(--fs-20); }
+h5 { font-size: var(--fs-16); }
+h6 { font-size: var(--fs-14); text-transform: uppercase; letter-spacing: var(--tracking-widest); color: var(--fg-3); font-weight: 500; }
+
+p {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: var(--fs-15);
+  line-height: var(--lh-normal);
+  text-wrap: pretty;
+}
+
+/* code, monospace inline */
+code, kbd, pre, samp, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+a {
+  color: var(--fg-1);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-3);
+  transition: border-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+}
+a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   UTILITY — eyebrows, dividers, ASCII
+   ============================================================ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--fg-3);
+}
+
+.divider-ascii {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--fg-4);
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cursor-blink::after {
+  content: '█';
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--accent);
+  animation: kernel-blink 1.06s steps(1) infinite;
+}
+@keyframes kernel-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* card primitive */
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-4);
+  padding: var(--sp-4);
+  transition: background-color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
+}
+.card:hover {
+  background: var(--bg-3);
+  border-color: var(--line-4);
+}
+
+/* difficulty pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  padding: 2px 8px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line-2);
+  color: var(--fg-2);
+  text-transform: lowercase;
+  letter-spacing: 0;
+  background: var(--bg-1);
+}
+.pill[data-diff="easy"]   { color: var(--diff-easy); border-color: rgba(94,230,163,0.3); }
+.pill[data-diff="medium"] { color: var(--diff-med); border-color: rgba(255,179,71,0.3); }
+.pill[data-diff="hard"]   { color: var(--diff-hard); border-color: rgba(255,122,122,0.3); }
+
+/* button primitives */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  padding: 8px 14px;
+  border: 1px solid var(--line-3);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  border-radius: var(--r-4);
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+.btn:hover { background: var(--bg-3); border-color: var(--line-5); }
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-0);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.btn-primary:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent-dim);
+  color: var(--bg-0);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn-ghost:hover { background: var(--bg-3); border-color: var(--line-3); }
+
+/* input primitive */
+.input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  color: var(--fg-1);
+  padding: 8px 12px;
+  border-radius: var(--r-4);
+  outline: none;
+  transition: border-color var(--dur-2) var(--ease);
+  width: 100%;
+}
+.input::placeholder { color: var(--fg-4); }
+.input:focus { border-color: var(--accent-line); box-shadow: var(--shadow-input-focus); }
+
+/* faint grid background utility */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--line-1) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line-1) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* selection */
+::selection {
+  background: var(--accent);
+  color: var(--bg-0);
+}
+
+/* scrollbar (webkit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-0); }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: var(--r-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--bg-5); }

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kernel/ — logos</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin: 0; padding: 48px; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 40px; }
+  .row { display: flex; gap: 32px; align-items: stretch; flex-wrap: wrap; }
+  .specimen {
+    flex: 1; min-width: 280px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-4);
+    padding: 32px;
+    display: flex; flex-direction: column; gap: 20px;
+    align-items: center; justify-content: center;
+    min-height: 180px;
+    position: relative;
+  }
+  .specimen[data-light] { background: var(--fg-1); color: var(--bg-0); border-color: var(--fg-2); }
+  .specimen[data-light] .label { color: var(--bg-0); opacity: 0.6; }
+  .specimen[data-accent] { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+  .specimen[data-accent] .label { color: var(--bg-0); opacity: 0.7; }
+  .specimen img { display: block; }
+  .label {
+    position: absolute; top: 12px; left: 16px;
+    font-family: var(--font-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--fg-3);
+  }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group { display: flex; flex-direction: column; gap: 12px; }
+  .mark-set { display: flex; gap: 24px; align-items: center; }
+  .clearspace {
+    position: relative;
+    padding: 32px;
+    border: 1px dashed var(--line-3);
+  }
+  .clearspace::before, .clearspace::after,
+  .clearspace > .h::before, .clearspace > .h::after {
+    content: ''; position: absolute; background: var(--accent-line);
+  }
+  .rules { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); line-height: 1.7; }
+  .rules b { color: var(--fg-1); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// logo / mark</div>
+  <div class="row">
+    <div class="specimen">
+      <span class="label">on dark — primary</span>
+      <img src="../assets/kernel-wordmark.svg" alt="kernel/" style="height: 48px; color: var(--fg-1);" />
+    </div>
+    <div class="specimen" data-light>
+      <span class="label">on light</span>
+      <img src="../assets/kernel-wordmark.svg" alt="kernel/" style="height: 48px; filter: invert(1);" />
+    </div>
+    <div class="specimen" data-accent>
+      <span class="label">on accent</span>
+      <img src="../assets/kernel-wordmark.svg" alt="kernel/" style="height: 48px; filter: invert(1);" />
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// mark / square</div>
+  <div class="row">
+    <div class="specimen">
+      <span class="label">128px</span>
+      <div style="color: var(--fg-1); width: 128px; height: 128px;"><img src="../assets/kernel-mark.svg" alt="" style="width: 100%; height: 100%;"/></div>
+    </div>
+    <div class="specimen">
+      <span class="label">64px</span>
+      <div style="color: var(--fg-1); width: 64px; height: 64px;"><img src="../assets/kernel-mark.svg" alt="" style="width: 100%; height: 100%;"/></div>
+    </div>
+    <div class="specimen">
+      <span class="label">32px (favicon)</span>
+      <div style="color: var(--fg-1); width: 32px; height: 32px;"><img src="../assets/kernel-mark.svg" alt="" style="width: 100%; height: 100%;"/></div>
+    </div>
+    <div class="specimen" data-accent>
+      <span class="label">on accent</span>
+      <div style="color: var(--bg-0); width: 64px; height: 64px;"><img src="../assets/kernel-mark.svg" alt="" style="width: 100%; height: 100%; filter: invert(1);"/></div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// usage</div>
+  <div class="row">
+    <div class="rules" style="flex: 1; min-width: 320px;">
+      <b>do</b><br/>
+      ─ use the slash. it's the brand.<br/>
+      ─ keep at <span class="mono">currentColor</span> — let it inherit.<br/>
+      ─ minimum height: 16px (mark), 24px (wordmark).<br/>
+      ─ clearspace: at least 1× the cap-height on all sides.<br/>
+      <br/>
+      <b>don't</b><br/>
+      ─ apply gradients, shadows, or outlines.<br/>
+      ─ rotate, skew, or stretch.<br/>
+      ─ change the font weight.<br/>
+      ─ recolor the slash to anything other than fg-1 or accent.<br/>
+      ─ pair with another wordmark in the same lockup.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

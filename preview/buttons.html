@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group + .group { margin-top: 40px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 16px 20px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); }
+  .row + .row { margin-top: 12px; }
+  .row .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; min-width: 80px; }
+
+  .btn-sm { font-size: 12px; padding: 6px 10px; }
+  .btn-lg { font-size: 14px; padding: 12px 18px; }
+  .btn-icon { padding: 8px; }
+  .icon { display: inline-flex; width: 16px; height: 16px; }
+  .icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// primary — accent</div>
+  <div class="row">
+    <span class="lbl">default</span>
+    <button class="btn btn-primary">&gt; start solving</button>
+    <button class="btn btn-primary btn-sm">&gt; track</button>
+    <button class="btn btn-primary btn-lg">&gt; apply to gsoc</button>
+    <button class="btn btn-primary">
+      <span class="icon"><svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>
+      run tests
+    </button>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// secondary — outlined</div>
+  <div class="row">
+    <span class="lbl">default</span>
+    <button class="btn">view roadmap</button>
+    <button class="btn btn-sm">cancel</button>
+    <button class="btn btn-lg">browse 184 orgs</button>
+    <button class="btn">
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      export
+    </button>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// ghost — chrome</div>
+  <div class="row">
+    <span class="lbl">nav</span>
+    <button class="btn btn-ghost">arena</button>
+    <button class="btn btn-ghost">workshop</button>
+    <button class="btn btn-ghost">war room</button>
+    <button class="btn btn-ghost btn-icon">
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
+    </button>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// states</div>
+  <div class="row">
+    <span class="lbl">primary</span>
+    <button class="btn btn-primary">default</button>
+    <button class="btn btn-primary" style="background: var(--accent-dim); border-color: var(--accent-dim);">hover</button>
+    <button class="btn btn-primary" style="opacity: 0.4; cursor: not-allowed;">disabled</button>
+    <button class="btn btn-primary" style="box-shadow: var(--glow-accent);">focused</button>
+  </div>
+  <div class="row">
+    <span class="lbl">secondary</span>
+    <button class="btn">default</button>
+    <button class="btn" style="background: var(--bg-3); border-color: var(--line-5);">hover</button>
+    <button class="btn" style="opacity: 0.3; cursor: not-allowed;">disabled</button>
+    <button class="btn" style="border-color: var(--accent-line); box-shadow: var(--glow-accent);">focused</button>
+  </div>
+  <div class="row">
+    <span class="lbl">danger</span>
+    <button class="btn" style="background: var(--danger-glow); color: var(--danger); border-color: rgba(255,92,92,0.3);">
+      <span class="icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span>
+      delete proposal
+    </button>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// shape rules</div>
+  <div class="row" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); line-height: 1.7; display: block;">
+    ─ height: 32px (sm), 36px (default), 44px (lg)<br/>
+    ─ padding: 6/10 (sm), 8/14 (default), 12/18 (lg)<br/>
+    ─ radius: r-4 always (4px)<br/>
+    ─ font: jetbrains mono · 13px · lowercase<br/>
+    ─ icon size: 16px, 1.5px stroke, currentColor<br/>
+    ─ gap between icon and label: 8px<br/>
+    ─ never use ALL CAPS, title case, or marketing exclaims
+  </div>
+</div>
+
+</body>
+</html>

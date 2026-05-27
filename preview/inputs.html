@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — inputs</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group + .group { margin-top: 40px; }
+  .panel { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .panel.full { grid-template-columns: 1fr; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .field .help { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .field .err { font-family: var(--font-mono); font-size: 11px; color: var(--danger); }
+
+  .input-with-prefix { position: relative; }
+  .input-with-prefix .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 13px; color: var(--fg-3); pointer-events: none; }
+  .input-with-prefix .input { padding-left: 28px; }
+
+  .checkbox-row, .radio-row { display: flex; flex-direction: column; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); cursor: pointer; }
+  .check .box { width: 16px; height: 16px; border: 1px solid var(--line-3); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: var(--accent); border-radius: var(--r-2); }
+  .check.on .box { border-color: var(--accent); background: var(--accent); color: var(--bg-0); }
+  .check .dot { width: 16px; height: 16px; border: 1px solid var(--line-3); border-radius: 50%; position: relative; }
+  .check.on .dot { border-color: var(--accent); }
+  .check.on .dot::after { content: ''; position: absolute; inset: 3px; background: var(--accent); border-radius: 50%; }
+
+  .toggle { position: relative; width: 32px; height: 18px; background: var(--bg-1); border: 1px solid var(--line-3); border-radius: 999px; cursor: pointer; }
+  .toggle .knob { position: absolute; top: 1px; left: 1px; width: 14px; height: 14px; background: var(--fg-3); border-radius: 50%; transition: all var(--dur-2) var(--ease); }
+  .toggle.on { background: var(--accent); border-color: var(--accent); }
+  .toggle.on .knob { left: 15px; background: var(--bg-0); }
+
+  .select { position: relative; }
+  .select::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--fg-3); font-family: var(--font-mono); font-size: 12px; pointer-events: none; }
+  .select select {
+    appearance: none; -webkit-appearance: none;
+    width: 100%; font-family: var(--font-mono); font-size: 13px;
+    background: var(--bg-1); border: 1px solid var(--line-2); color: var(--fg-1);
+    padding: 8px 28px 8px 12px; border-radius: var(--r-4); outline: none;
+  }
+  .select select:focus { border-color: var(--accent-line); box-shadow: var(--shadow-input-focus); }
+
+  .search-bar { display: flex; align-items: center; gap: 8px; background: var(--bg-1); border: 1px solid var(--line-2); padding: 0 12px; border-radius: var(--r-4); }
+  .search-bar svg { width: 14px; height: 14px; color: var(--fg-3); flex-shrink: 0; }
+  .search-bar input { background: transparent; border: 0; outline: 0; padding: 9px 0; flex: 1; font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .search-bar input::placeholder { color: var(--fg-4); }
+  .search-bar kbd { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); border: 1px solid var(--line-2); padding: 2px 5px; border-radius: 2px; background: var(--bg-0); }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// text inputs</div>
+  <div class="panel">
+    <div class="field">
+      <label>username</label>
+      <input class="input" placeholder="aarav.k" />
+      <span class="help">3–24 chars, lowercase, dots allowed.</span>
+    </div>
+    <div class="field">
+      <label>github handle</label>
+      <div class="input-with-prefix">
+        <span class="prefix">@</span>
+        <input class="input" placeholder="aaravk" />
+      </div>
+    </div>
+    <div class="field">
+      <label>email — focused</label>
+      <input class="input" value="aarav@iitb.ac.in" style="border-color: var(--accent-line); box-shadow: var(--shadow-input-focus);" />
+      <span class="help" style="color: var(--accent);">looks good.</span>
+    </div>
+    <div class="field">
+      <label>password — error</label>
+      <input class="input" type="password" value="••••••" style="border-color: var(--danger);" />
+      <span class="err">at least 12 chars. you have 6.</span>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// search — primary surface</div>
+  <div class="panel full">
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input placeholder="search problems, programs, orgs, contributors…" />
+      <kbd>⌘K</kbd>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// select / dropdown</div>
+  <div class="panel">
+    <div class="field">
+      <label>language track</label>
+      <div class="select">
+        <select>
+          <option>rust</option>
+          <option>go</option>
+          <option>c++</option>
+          <option>python</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>difficulty</label>
+      <div class="select">
+        <select>
+          <option>any</option>
+          <option>easy</option>
+          <option>medium</option>
+          <option>hard</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// checkbox · radio · toggle</div>
+  <div class="panel">
+    <div>
+      <label style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; display: block; margin-bottom: 12px;">checkboxes</label>
+      <div class="checkbox-row">
+        <label class="check on"><span class="box">✓</span>two-pointer</label>
+        <label class="check on"><span class="box">✓</span>sliding window</label>
+        <label class="check"><span class="box"></span>monotonic stack</label>
+        <label class="check"><span class="box"></span>topological sort</label>
+      </div>
+    </div>
+    <div>
+      <label style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; display: block; margin-bottom: 12px;">radios</label>
+      <div class="radio-row">
+        <label class="check on"><span class="dot"></span>open source</label>
+        <label class="check"><span class="dot"></span>commercial</label>
+        <label class="check"><span class="dot"></span>any</label>
+      </div>
+      <label style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; display: block; margin: 20px 0 12px;">toggles</label>
+      <div style="display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 13px; color: var(--fg-1);">
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;"><span class="toggle on"><span class="knob"></span></span>show solved</label>
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;"><span class="toggle"><span class="knob"></span></span>contest mode</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

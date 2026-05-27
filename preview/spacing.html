@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — spacing, radii, motion</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { margin: 0; padding: 48px; box-sizing: border-box; }
+  .ttl { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.16em; }
+  .group + .group { margin-top: 48px; }
+  .scale { display: flex; flex-direction: column; gap: 6px; }
+  .scale .row { display: flex; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .scale .row .name { width: 80px; color: var(--fg-2); }
+  .scale .row .px { width: 56px; }
+  .scale .row .bar { background: var(--accent); height: 16px; border-radius: var(--r-2); }
+  .radii { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .radii .item { background: var(--bg-2); border: 1px solid var(--line-2); padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 140px; }
+  .radii .swatch { width: 80px; height: 80px; background: var(--accent); }
+  .radii .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .shadows { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .shadows .demo { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); padding: 32px; min-height: 140px; display: flex; flex-direction: column; gap: 14px; }
+  .shadows .demo .input-demo { background: var(--bg-1); border: 1px solid var(--line-2); padding: 10px 12px; font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .shadows .demo .input-demo.focus { border-color: var(--accent); }
+  .shadows .demo .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .grid-demo {
+    height: 240px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-4);
+    background-color: var(--bg-2);
+    background-image:
+      linear-gradient(to right, var(--line-1) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line-1) 1px, transparent 1px);
+    background-size: 32px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .grid-demo .label { position: absolute; bottom: 16px; left: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .motion { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .motion .demo { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); padding: 24px; min-height: 100px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: background-color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease); }
+  .motion .demo:hover { background: var(--bg-3); border-color: var(--line-4); }
+  .motion .demo .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .motion .demo .desc { font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="group">
+  <div class="ttl">// spacing — 4px base scale</div>
+  <div class="scale">
+    <div class="row"><span class="name">sp-1</span><span class="px">4px</span><div class="bar" style="width: 4px;"></div></div>
+    <div class="row"><span class="name">sp-2</span><span class="px">8px</span><div class="bar" style="width: 8px;"></div></div>
+    <div class="row"><span class="name">sp-3</span><span class="px">12px</span><div class="bar" style="width: 12px;"></div></div>
+    <div class="row"><span class="name">sp-4</span><span class="px">16px</span><div class="bar" style="width: 16px;"></div></div>
+    <div class="row"><span class="name">sp-5</span><span class="px">20px</span><div class="bar" style="width: 20px;"></div></div>
+    <div class="row"><span class="name">sp-6</span><span class="px">24px</span><div class="bar" style="width: 24px;"></div></div>
+    <div class="row"><span class="name">sp-8</span><span class="px">32px</span><div class="bar" style="width: 32px;"></div></div>
+    <div class="row"><span class="name">sp-10</span><span class="px">40px</span><div class="bar" style="width: 40px;"></div></div>
+    <div class="row"><span class="name">sp-12</span><span class="px">48px</span><div class="bar" style="width: 48px;"></div></div>
+    <div class="row"><span class="name">sp-16</span><span class="px">64px</span><div class="bar" style="width: 64px;"></div></div>
+    <div class="row"><span class="name">sp-20</span><span class="px">80px</span><div class="bar" style="width: 80px;"></div></div>
+    <div class="row"><span class="name">sp-24</span><span class="px">96px</span><div class="bar" style="width: 96px;"></div></div>
+    <div class="row"><span class="name">sp-32</span><span class="px">128px</span><div class="bar" style="width: 128px;"></div></div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// radii — sharp by default</div>
+  <div class="radii">
+    <div class="item"><div class="swatch" style="border-radius: var(--r-0);"></div><div class="lbl">r-0 · 0px<br/>editorial / hero</div></div>
+    <div class="item"><div class="swatch" style="border-radius: var(--r-2);"></div><div class="lbl">r-2 · 2px<br/>chips, pills</div></div>
+    <div class="item"><div class="swatch" style="border-radius: var(--r-4);"></div><div class="lbl">r-4 · 4px<br/>cards, inputs</div></div>
+    <div class="item"><div class="swatch" style="border-radius: var(--r-6);"></div><div class="lbl">r-6 · 6px<br/>(rare)</div></div>
+    <div class="item"><div class="swatch" style="border-radius: var(--r-full);"></div><div class="lbl">r-full<br/>avatars, dots</div></div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// elevation — borders, not shadows</div>
+  <div class="shadows">
+    <div class="demo">
+      <span class="lbl">no-shadow default</span>
+      <div style="font-family: var(--font-mono); font-size: 13px; color: var(--fg-2);">cards rely on bg-step + 1px border</div>
+      <div style="background: var(--bg-3); border: 1px solid var(--line-2); padding: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-2);">elevated +1 step</div>
+    </div>
+    <div class="demo">
+      <span class="lbl">focus — inner ring</span>
+      <input class="input" placeholder="default state" />
+      <input class="input" placeholder="focused" autofocus style="border-color: var(--accent-line); box-shadow: var(--shadow-input-focus);" />
+    </div>
+    <div class="demo">
+      <span class="lbl">popover — only exception</span>
+      <div style="background: var(--bg-4); border: 1px solid var(--line-2); border-radius: var(--r-4); padding: 12px; box-shadow: var(--shadow-popover); font-family: var(--font-mono); font-size: 12px; color: var(--fg-2);">popover / dropdown<br/><span style="color: var(--fg-3); font-size: 11px;">0 8px 24px rgba(0,0,0,.4)</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// background — graph paper grid (landing only)</div>
+  <div class="grid-demo">
+    <span class="label">32px · 1px lines · rgba(255,255,255,.06)</span>
+  </div>
+</div>
+
+<div class="group">
+  <div class="ttl">// motion — fast and mechanical</div>
+  <div class="motion">
+    <div class="demo">
+      <span class="lbl">default</span>
+      <div class="desc">120ms · cubic-bezier(0.2, 0, 0, 1)<br/>border, bg, opacity only</div>
+    </div>
+    <div class="demo">
+      <span class="lbl">cursor blink</span>
+      <div class="desc">530ms square wave<br/><span class="cursor-blink" style="color: var(--fg-1);">writing</span></div>
+    </div>
+    <div class="demo">
+      <span class="lbl">forbidden</span>
+      <div class="desc">scale, transform, parallax<br/>fades > 200ms · bouncy springs</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

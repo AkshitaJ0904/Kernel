@@ -1,0 +1,25 @@
+{
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/frontend/node_modules/**": true,
+    "**/frontend/.next/**": true,
+    "**/backend/venv/**": true,
+    "**/backend/__pycache__/**": true,
+    "**/__pycache__/**": true,
+    "**/*.pyc": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/frontend/.next": true
+  },
+  "search.exclude": {
+    "**/frontend/node_modules": true,
+    "**/frontend/.next": true,
+    "**/backend/venv": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true
+  },
+  "git.ignoreLimitWarning": true
+}

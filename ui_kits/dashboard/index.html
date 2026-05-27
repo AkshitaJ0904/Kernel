@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>kernel/ — dashboard</title>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<style>
+  body { margin: 0; min-height: 100vh; }
+  .icon { display: inline-flex; flex-shrink: 0; }
+  .icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── layout shell ─────────────────────────── */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* ── sidebar ──────────────────────────────── */
+  .sb { background: var(--bg-1); border-right: 1px solid var(--line-2); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .sb .brand { padding: 16px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; gap: 10px; }
+  .sb .brand .logo { font-family: var(--font-mono); font-weight: 800; font-size: 16px; }
+  .sb .brand .slash { color: var(--accent); }
+  .sb .brand .v { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); }
+  .sb .section { padding: 14px 12px 6px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--fg-4); }
+  .sb a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px; margin: 0 6px; border-radius: var(--r-4);
+    font-family: var(--font-mono); font-size: 13px; color: var(--fg-2);
+    text-decoration: none; border: 0;
+    transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+  }
+  .sb a:hover { background: var(--bg-3); color: var(--fg-1); }
+  .sb a.active { background: var(--accent-glow); color: var(--accent); }
+  .sb a.active::before { content: '> '; color: var(--accent); margin-right: -2px; }
+  .sb a .count { margin-left: auto; font-size: 11px; color: var(--fg-4); }
+  .sb a.active .count { color: var(--accent); opacity: 0.8; }
+  .sb .icon { width: 14px; height: 14px; }
+  .sb .footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--line-2); display: flex; align-items: center; gap: 10px; }
+  .sb .footer .av { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-3); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; color: var(--fg-1); }
+  .sb .footer .name { font-family: var(--font-mono); font-size: 12px; color: var(--fg-1); line-height: 1.3; flex: 1; }
+  .sb .footer .name small { color: var(--fg-3); display: block; font-size: 11px; }
+  .sb .footer .icon-btn { color: var(--fg-3); cursor: pointer; }
+
+  /* ── main column ──────────────────────────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+
+  /* ── topbar ──────────────────────────────── */
+  .tb { height: 48px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; padding: 0 24px; gap: 12px; background: var(--bg-0); position: sticky; top: 0; z-index: 5; }
+  .tb .crumb { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .tb .crumb b { color: var(--fg-1); font-weight: 500; }
+  .tb .crumb .sep { color: var(--fg-4); margin: 0 6px; }
+  .tb .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .tb .icon-btn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-4); border: 1px solid transparent; cursor: pointer; color: var(--fg-2); }
+  .tb .icon-btn:hover { background: var(--bg-3); border-color: var(--line-2); }
+  .tb .icon-btn .icon { width: 14px; height: 14px; }
+  .tb .bell-dot { position: relative; }
+  .tb .bell-dot::after { content: ''; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+  .tb .streak { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); padding: 4px 10px; border: 1px solid var(--line-2); border-radius: var(--r-2); }
+  .tb .streak b { color: var(--accent); font-weight: 500; }
+  .tb .av { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-3); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; }
+
+  /* ── content ──────────────────────────────── */
+  .content { padding: 32px 32px 64px; max-width: 1440px; width: 100%; margin: 0 auto; }
+  .greeting { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .greeting h1 { font-size: 36px; letter-spacing: -0.01em; }
+  .greeting h1 .slash { color: var(--accent); }
+  .greeting h1 .cur::after { content: '█'; color: var(--accent); margin-left: 6px; animation: kernel-blink 1.06s steps(1) infinite; font-size: 28px; }
+  .greeting .meta { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+
+  /* ── stat row ─────────────────────────────── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line-2); border: 1px solid var(--line-2); border-radius: var(--r-4); overflow: hidden; }
+  .stats .item { background: var(--bg-2); padding: 16px 20px; }
+  .stats .item .l { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+  .stats .item .v { font-family: var(--font-mono); font-size: 28px; font-weight: 700; letter-spacing: -0.01em; margin-top: 6px; }
+  .stats .item .v .accent { color: var(--accent); }
+  .stats .item .v small { font-size: 14px; color: var(--fg-3); font-weight: 500; }
+  .stats .item .delta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: 4px; }
+  .stats .item .delta.warn { color: var(--warn); }
+
+  /* ── grid layout ──────────────────────────── */
+  .grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; margin-top: 24px; }
+  .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  /* ── panel primitive ──────────────────────── */
+  .panel { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-4); }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; border-bottom: 1px solid var(--line-2); }
+  .panel-head h3 { font-size: 16px; }
+  .panel-head .meta { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .panel-head .meta a { color: var(--fg-2); border: 0; padding: 4px 8px; border-radius: var(--r-2); font-family: var(--font-mono); font-size: 12px; }
+  .panel-head .meta a:hover { background: var(--bg-3); color: var(--fg-1); }
+  .panel-body { padding: 20px; }
+
+  /* ── roadmap ──────────────────────────────── */
+  .roadmap { display: flex; flex-direction: column; gap: 14px; }
+  .roadmap .step { display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; }
+  .roadmap .step .num { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.12em; }
+  .roadmap .step.done .num { color: var(--accent); }
+  .roadmap .step .label { display: flex; flex-direction: column; gap: 4px; }
+  .roadmap .step .name { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .roadmap .step.done .name { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--fg-5); }
+  .roadmap .step .sub { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .roadmap .step .progress { width: 96px; height: 4px; background: var(--bg-1); border-radius: 2px; overflow: hidden; }
+  .roadmap .step .progress > div { height: 100%; background: var(--accent); }
+  .roadmap .step.todo .progress > div { background: var(--fg-5); }
+  .roadmap .step .pct { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); width: 40px; text-align: right; }
+
+  /* ── heatmap ──────────────────────────────── */
+  .heatmap { display: flex; gap: 2px; }
+  .heatmap .col { display: flex; flex-direction: column; gap: 2px; }
+  .heatmap .cell { width: 11px; height: 11px; background: var(--bg-1); border-radius: 2px; border: 1px solid var(--line-1); }
+  .heatmap .cell.l1 { background: rgba(57,255,122,0.18); border-color: rgba(57,255,122,0.2); }
+  .heatmap .cell.l2 { background: rgba(57,255,122,0.4); border-color: rgba(57,255,122,0.4); }
+  .heatmap .cell.l3 { background: rgba(57,255,122,0.7); border-color: rgba(57,255,122,0.5); }
+  .heatmap .cell.l4 { background: var(--accent); border-color: var(--accent); }
+  .heatmap-months { display: flex; justify-content: space-between; padding: 0 4px; margin-top: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.14em; }
+  .heatmap-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .heatmap-foot .scale { display: flex; gap: 2px; align-items: center; }
+  .heatmap-foot .scale .cell { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ── problem queue ────────────────────────── */
+  .queue-row { display: grid; grid-template-columns: auto 80px 1fr 100px 80px auto; gap: 14px; padding: 10px 16px; border-top: 1px solid var(--line-1); align-items: center; font-family: var(--font-mono); font-size: 13px; transition: background var(--dur-2) var(--ease); cursor: pointer; }
+  .queue-row:first-child { border-top: 0; }
+  .queue-row:hover { background: var(--bg-3); }
+  .queue-row .check { width: 14px; height: 14px; border: 1px solid var(--line-3); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); }
+  .queue-row.done .check { background: var(--accent); border-color: var(--accent); color: var(--bg-0); }
+  .queue-row .path { color: var(--fg-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .queue-row .name { color: var(--fg-1); font-size: 13px; }
+  .queue-row.done .name { color: var(--fg-3); }
+  .queue-row .when { color: var(--fg-3); text-align: right; font-size: 11px; }
+  .queue-row .att { color: var(--fg-3); text-align: right; font-size: 11px; }
+
+  /* ── war-room program tracker ─────────────── */
+  .programs-mini { display: grid; gap: 10px; }
+  .prog-mini { display: grid; grid-template-columns: 4px 1fr auto; gap: 14px; padding: 12px 16px; background: var(--bg-1); border: 1px solid var(--line-2); border-radius: var(--r-4); align-items: center; }
+  .prog-mini .stripe { width: 4px; height: 100%; background: var(--accent); border-radius: 2px; align-self: stretch; }
+  .prog-mini .stripe.warn { background: var(--warn); }
+  .prog-mini .stripe.muted { background: var(--fg-5); }
+  .prog-mini .name { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .prog-mini .sub { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-top: 2px; }
+  .prog-mini .deadline { font-family: var(--font-mono); font-size: 12px; color: var(--warn); white-space: nowrap; }
+  .prog-mini .deadline.muted { color: var(--fg-3); }
+
+  /* ── notification list ────────────────────── */
+  .notif-list { display: flex; flex-direction: column; }
+  .notif {
+    display: grid; grid-template-columns: 8px 1fr auto; gap: 12px;
+    padding: 12px 20px; border-top: 1px solid var(--line-1); align-items: flex-start;
+    transition: background var(--dur-2) var(--ease);
+    cursor: pointer;
+  }
+  .notif:first-child { border-top: 0; }
+  .notif:hover { background: var(--bg-3); }
+  .notif .marker { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; background: var(--fg-4); }
+  .notif.unread .marker { background: var(--accent); }
+  .notif.warn .marker { background: var(--warn); }
+  .notif .msg { font-size: 13px; color: var(--fg-1); line-height: 1.5; }
+  .notif:not(.unread) .msg { color: var(--fg-2); }
+  .notif .msg b { color: var(--accent); font-weight: 500; font-family: var(--font-mono); }
+  .notif.warn .msg b { color: var(--warn); }
+  .notif .when { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); white-space: nowrap; }
+
+  /* ── activity / commit log ────────────────── */
+  .commits { display: flex; flex-direction: column; }
+  .commit { display: grid; grid-template-columns: 76px 1fr auto; gap: 12px; padding: 10px 20px; border-top: 1px solid var(--line-1); align-items: center; font-family: var(--font-mono); font-size: 12px; }
+  .commit:first-child { border-top: 0; }
+  .commit .hash { color: var(--accent); }
+  .commit .msg { color: var(--fg-1); }
+  .commit .msg .tag { color: var(--fg-3); }
+  .commit .when { color: var(--fg-3); white-space: nowrap; }
+
+  /* ── contest ticker ───────────────────────── */
+  .contest-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px 16px; background: var(--bg-1); border: 1px solid var(--line-2); border-radius: var(--r-4); align-items: center; }
+  .contest-row + .contest-row { margin-top: 8px; }
+  .contest-row .name { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); }
+  .contest-row .sub { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-top: 2px; }
+  .contest-row .countdown { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .contest-row .countdown.warn { color: var(--warn); }
+
+  /* ── pattern bar ──────────────────────────── */
+  .patterns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; }
+  .pattern { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 6px 0; align-items: center; }
+  .pattern .name { font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); }
+  .pattern .bar { width: 80px; height: 4px; background: var(--bg-1); border-radius: 2px; overflow: hidden; }
+  .pattern .bar > div { height: 100%; background: var(--accent); }
+  .pattern .ratio { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); width: 56px; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- sidebar -->
+  <aside class="sb">
+    <div class="brand">
+      <span class="logo">kernel<span class="slash">/</span></span>
+      <span class="v">v0.4</span>
+    </div>
+
+    <div class="section">// home</div>
+    <a class="active">
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+      dashboard
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+      roadmap
+      <span class="count">62%</span>
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+      activity
+    </a>
+
+    <div class="section">// pillars</div>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+      arena
+      <span class="count">342</span>
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+      workshop
+      <span class="count">7</span>
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20z"/></svg></span>
+      war room
+      <span class="count">3</span>
+    </a>
+
+    <div class="section">// arena</div>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><polyline points="6 3 20 12 6 21 6 3"/></svg></span>
+      daily problem
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      contests
+      <span class="count">3</span>
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+      patterns
+    </a>
+
+    <div class="section">// you</div>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      profile
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></span>
+      github
+      <span class="count">@aaravk</span>
+    </a>
+    <a>
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      settings
+    </a>
+
+    <div class="footer">
+      <div class="av">AK</div>
+      <div class="name">aarav.k<small>iit bombay '27</small></div>
+      <span class="icon-btn icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- topbar -->
+    <header class="tb">
+      <span class="crumb"><b>kernel/</b><span class="sep">/</span>dashboard</span>
+      <div class="right">
+        <span class="streak">streak <b>12d</b></span>
+        <button class="icon-btn"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span></button>
+        <button class="icon-btn bell-dot"><span class="icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span></button>
+        <div class="av">AK</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- greeting -->
+      <div class="greeting">
+        <div>
+          <span class="eyebrow">// 2026-03-24 · monday · ist 09:42</span>
+          <h1 style="margin-top: 8px;">welcome back<span class="slash">/</span> aarav<span class="cur"></span></h1>
+        </div>
+        <span class="meta">last seen 16h ago · 3 unread · 2 deadlines this week</span>
+      </div>
+
+      <!-- stat row -->
+      <div class="stats">
+        <div class="item">
+          <div class="l">problems solved</div>
+          <div class="v"><span class="accent">342</span></div>
+          <div class="delta">+11 this week</div>
+        </div>
+        <div class="item">
+          <div class="l">streak</div>
+          <div class="v">12<small>d</small></div>
+          <div class="delta">longest 31d</div>
+        </div>
+        <div class="item">
+          <div class="l">prs merged</div>
+          <div class="v">3</div>
+          <div class="delta">+1 this week</div>
+        </div>
+        <div class="item">
+          <div class="l">gsoc countdown</div>
+          <div class="v" style="color: var(--warn);">14<small>d 03h</small></div>
+          <div class="delta warn">applications open</div>
+        </div>
+      </div>
+
+      <!-- main grid -->
+      <div class="grid">
+
+        <!-- left col -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+
+          <!-- roadmap -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>your roadmap <span style="font-family: var(--font-mono); font-weight: 400; color: var(--fg-3); font-size: 13px;">// gsoc-2026 prep</span></h3>
+              <span class="meta"><a>view full</a></span>
+            </div>
+            <div class="panel-body">
+              <div class="roadmap">
+                <div class="step done">
+                  <span class="num">01</span>
+                  <div class="label">
+                    <span class="name">pick three orgs to read</span>
+                    <span class="sub">apache nuttx · cncf prometheus · postgres</span>
+                  </div>
+                  <div class="progress"><div style="width: 100%;"></div></div>
+                  <span class="pct">100%</span>
+                </div>
+                <div class="step done">
+                  <span class="num">02</span>
+                  <div class="label">
+                    <span class="name">read contributing.md · join dev list</span>
+                    <span class="sub">3/3 read · subscribed to dev@nuttx</span>
+                  </div>
+                  <div class="progress"><div style="width: 100%;"></div></div>
+                  <span class="pct">100%</span>
+                </div>
+                <div class="step done">
+                  <span class="num">03</span>
+                  <div class="label">
+                    <span class="name">ship one tiny pr</span>
+                    <span class="sub">apache/nuttx#14721 · merged 1d ago</span>
+                  </div>
+                  <div class="progress"><div style="width: 100%;"></div></div>
+                  <span class="pct">100%</span>
+                </div>
+                <div class="step">
+                  <span class="num" style="color: var(--accent);">04</span>
+                  <div class="label">
+                    <span class="name" style="color: var(--accent);">draft proposal — usb host stack</span>
+                    <span class="sub">12 / 14 sections · mentor reviewed v1</span>
+                  </div>
+                  <div class="progress"><div style="width: 86%;"></div></div>
+                  <span class="pct" style="color: var(--accent);">86%</span>
+                </div>
+                <div class="step todo">
+                  <span class="num">05</span>
+                  <div class="label">
+                    <span class="name">mentor review v2</span>
+                    <span class="sub">scheduled mar 30</span>
+                  </div>
+                  <div class="progress"><div style="width: 0;"></div></div>
+                  <span class="pct">0%</span>
+                </div>
+                <div class="step todo">
+                  <span class="num">06</span>
+                  <div class="label">
+                    <span class="name">submit on gsoc portal</span>
+                    <span class="sub">deadline apr 02 · 14d 03h</span>
+                  </div>
+                  <div class="progress"><div style="width: 0;"></div></div>
+                  <span class="pct">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- heatmap -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>your year, in commits</h3>
+              <span class="meta">847 contributions · 31d longest</span>
+            </div>
+            <div class="panel-body">
+              <div id="heatmap" class="heatmap"></div>
+              <div class="heatmap-months"><span>jan</span><span>feb</span><span>mar</span><span>apr</span><span>may</span><span>jun</span><span>jul</span><span>aug</span><span>sep</span><span>oct</span><span>nov</span><span>dec</span></div>
+              <div class="heatmap-foot">
+                <span>&#9633; = solved problem · merged pr · proposal draft · contest entry</span>
+                <div class="scale">
+                  less
+                  <span class="cell" style="background: var(--bg-1); border: 1px solid var(--line-1);"></span>
+                  <span class="cell" style="background: rgba(57,255,122,0.18);"></span>
+                  <span class="cell" style="background: rgba(57,255,122,0.4);"></span>
+                  <span class="cell" style="background: rgba(57,255,122,0.7);"></span>
+                  <span class="cell" style="background: var(--accent);"></span>
+                  more
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- two-col row: queue + patterns -->
+          <div class="grid-row">
+            <!-- daily queue -->
+            <div class="panel">
+              <div class="panel-head">
+                <h3>today's queue</h3>
+                <span class="meta"><a>shuffle</a></span>
+              </div>
+              <div>
+                <div class="queue-row">
+                  <span class="check"></span>
+                  <span class="path">arrays/2ptr</span>
+                  <span class="name">3sum</span>
+                  <span class="pill" data-diff="medium" style="justify-self: start;">medium</span>
+                  <span class="att">3rd time</span>
+                  <span class="when">→</span>
+                </div>
+                <div class="queue-row">
+                  <span class="check"></span>
+                  <span class="path">graphs/topo</span>
+                  <span class="name">course schedule ii</span>
+                  <span class="pill" data-diff="hard">hard</span>
+                  <span class="att">attempt 2</span>
+                  <span class="when">→</span>
+                </div>
+                <div class="queue-row done">
+                  <span class="check">✓</span>
+                  <span class="path">trees/dfs</span>
+                  <span class="name">max depth bt</span>
+                  <span class="pill" data-diff="easy">easy</span>
+                  <span class="att">1st try</span>
+                  <span class="when">2h</span>
+                </div>
+                <div class="queue-row">
+                  <span class="check"></span>
+                  <span class="path">dp/1d</span>
+                  <span class="name">house robber</span>
+                  <span class="pill" data-diff="medium">medium</span>
+                  <span class="att">new</span>
+                  <span class="when">→</span>
+                </div>
+                <div class="queue-row">
+                  <span class="check"></span>
+                  <span class="path">strings/sw</span>
+                  <span class="name">longest substring no repeat</span>
+                  <span class="pill" data-diff="medium">medium</span>
+                  <span class="att">new</span>
+                  <span class="when">→</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- pattern coverage -->
+            <div class="panel">
+              <div class="panel-head">
+                <h3>pattern coverage</h3>
+                <span class="meta">15 / 24</span>
+              </div>
+              <div class="panel-body">
+                <div class="patterns">
+                  <div class="pattern"><span class="name">two-pointer</span><div class="bar"><div style="width: 86%;"></div></div></div>
+                  <div class="pattern"><span class="name">sliding window</span><div class="bar"><div style="width: 72%;"></div></div></div>
+                  <div class="pattern"><span class="name">binary search</span><div class="bar"><div style="width: 90%;"></div></div></div>
+                  <div class="pattern"><span class="name">dfs / bfs</span><div class="bar"><div style="width: 64%;"></div></div></div>
+                  <div class="pattern"><span class="name">topo sort</span><div class="bar"><div style="width: 30%;"></div></div></div>
+                  <div class="pattern"><span class="name">union find</span><div class="bar"><div style="width: 12%;"></div></div></div>
+                  <div class="pattern"><span class="name">heap / pq</span><div class="bar"><div style="width: 48%;"></div></div></div>
+                  <div class="pattern"><span class="name">trie</span><div class="bar"><div style="width: 8%;"></div></div></div>
+                  <div class="pattern"><span class="name">dp · 1d</span><div class="bar"><div style="width: 70%;"></div></div></div>
+                  <div class="pattern"><span class="name">dp · 2d</span><div class="bar"><div style="width: 22%;"></div></div></div>
+                  <div class="pattern"><span class="name">monotonic stack</span><div class="bar"><div style="width: 18%;"></div></div></div>
+                  <div class="pattern"><span class="name">backtracking</span><div class="bar"><div style="width: 56%;"></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- recent activity / commit log -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>recent activity</h3>
+              <span class="meta"><a>view all</a></span>
+            </div>
+            <div class="commits">
+              <div class="commit"><span class="hash">a3f1c2e</span><span class="msg">solved · arrays/two-pointer/3sum <span class="tag">[1st try · 18m]</span></span><span class="when">12m ago</span></div>
+              <div class="commit"><span class="hash">b8e2440</span><span class="msg">started · workshop/rust/04-lifetimes</span><span class="when">2h ago</span></div>
+              <div class="commit"><span class="hash">9d12fa1</span><span class="msg">opened pr · apache/airflow#41281 <span class="tag">[review requested]</span></span><span class="when">1d ago</span></div>
+              <div class="commit"><span class="hash">e0b7c3a</span><span class="msg">draft · gsoc proposal · apache nuttx <span class="tag">[v1 · mentor reviewed]</span></span><span class="when">2d ago</span></div>
+              <div class="commit"><span class="hash">c45a190</span><span class="msg">streak +1 · 12 days</span><span class="when">3d ago</span></div>
+              <div class="commit"><span class="hash">f117b0b</span><span class="msg">solved · graphs/topo/course-schedule <span class="tag">[3rd try]</span></span><span class="when">3d ago</span></div>
+              <div class="commit"><span class="hash">42aabbc</span><span class="msg">contest · weekly #420 · rank 184/12k</span><span class="when">5d ago</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- right col -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+
+          <!-- programs you're tracking -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>tracking · 3 programs</h3>
+              <span class="meta"><a>+ add</a></span>
+            </div>
+            <div class="panel-body">
+              <div class="programs-mini">
+                <div class="prog-mini">
+                  <span class="stripe"></span>
+                  <div>
+                    <div class="name">gsoc 2026</div>
+                    <div class="sub">apache · cncf · postgres</div>
+                  </div>
+                  <span class="deadline">14d 03h</span>
+                </div>
+                <div class="prog-mini">
+                  <span class="stripe warn"></span>
+                  <div>
+                    <div class="name">c4gt 2026</div>
+                    <div class="sub">beckn · ondc</div>
+                  </div>
+                  <span class="deadline">6d 14h</span>
+                </div>
+                <div class="prog-mini">
+                  <span class="stripe muted"></span>
+                  <div>
+                    <div class="name">lfx mentorship</div>
+                    <div class="sub">spring '26 cohort</div>
+                  </div>
+                  <span class="deadline muted">~q2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- contests -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>upcoming contests</h3>
+              <span class="meta"><a>schedule</a></span>
+            </div>
+            <div class="panel-body">
+              <div class="contest-row">
+                <div>
+                  <div class="name">weekly #422</div>
+                  <div class="sub">sat 08:00 ist · 90m · 4 problems</div>
+                </div>
+                <span class="countdown warn">3d 22h</span>
+              </div>
+              <div class="contest-row">
+                <div>
+                  <div class="name">codeforces div2</div>
+                  <div class="sub">sun 20:00 ist · 2h · 6 problems</div>
+                </div>
+                <span class="countdown">4d 10h</span>
+              </div>
+              <div class="contest-row">
+                <div>
+                  <div class="name">arena cup · march</div>
+                  <div class="sub">internal · top 10 → mentor 1:1</div>
+                </div>
+                <span class="countdown">8d</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- notifications -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>notifications</h3>
+              <span class="meta"><a>mark all read</a></span>
+            </div>
+            <div class="notif-list">
+              <div class="notif unread">
+                <div class="marker"></div>
+                <div class="msg"><b>apache/nuttx</b> · your pr #14721 was merged. nice.</div>
+                <div class="when">12m</div>
+              </div>
+              <div class="notif unread warn">
+                <div class="marker"></div>
+                <div class="msg"><b>gsoc 2026</b> · applications open in 14d. you have 1 draft.</div>
+                <div class="when">2h</div>
+              </div>
+              <div class="notif unread">
+                <div class="marker"></div>
+                <div class="msg"><b>mentor: ria s.</b> · reviewed your proposal v1 — 4 comments.</div>
+                <div class="when">5h</div>
+              </div>
+              <div class="notif">
+                <div class="marker"></div>
+                <div class="msg"><b>contest</b> · weekly #421 · rank 184 / 12,403 · solved 3/4</div>
+                <div class="when">2d</div>
+              </div>
+              <div class="notif">
+                <div class="marker"></div>
+                <div class="msg"><b>roadmap</b> · rust/04 — lifetimes is 62% complete. pick it back up.</div>
+                <div class="when">3d</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+(function(){
+  // heatmap generator
+  const map = document.getElementById('heatmap');
+  if (!map) return;
+  const cols = 53, rows = 7;
+  const seed = (x) => { const s = Math.sin(x * 12.9898) * 43758.5453; return s - Math.floor(s); };
+  for (let c = 0; c < cols; c++) {
+    const col = document.createElement('div');
+    col.className = 'col';
+    for (let r = 0; r < rows; r++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const v = seed(c * 7 + r);
+      const recencyBoost = c / cols * 0.5;
+      const score = v + recencyBoost - 0.3;
+      if (score > 0.85) cell.classList.add('l4');
+      else if (score > 0.65) cell.classList.add('l3');
+      else if (score > 0.45) cell.classList.add('l2');
+      else if (score > 0.25) cell.classList.add('l1');
+      col.appendChild(cell);
+    }
+    map.appendChild(col);
+  }
+})();
+</script>
+
+</body>
+</html>
