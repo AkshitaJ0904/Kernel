@@ -175,3 +175,144 @@ export interface DashboardData {
   pattern_coverage: PatternCoverage[]
   recent_activity: ActivityEntry[]
 }
+
+// ── War Room · contest detail ──────────────────────────────────────────
+
+export interface ContestOverview {
+  description_long: string
+  objective: string
+  eligibility: string
+  registration_process: string
+  prerequisites: string
+}
+
+export interface OverviewLink {
+  id: number
+  label: string
+  url: string
+}
+
+export interface ContestFlowStep {
+  id: number
+  title: string
+  description: string
+  order: number
+}
+
+export interface TimelineEvent {
+  id: number
+  title: string
+  start_date: string | null
+  end_date: string | null
+  description: string
+  link_url: string
+  order: number
+}
+
+export interface ContestTimeline {
+  id: number
+  name: string
+  year: number | null
+  is_current: boolean
+  events: TimelineEvent[]
+}
+
+export interface StipendTier {
+  id: number
+  region: string
+  amount: number
+  currency: 'USD' | 'INR'
+  note: string
+}
+
+export interface StipendPhase {
+  id: number
+  name: string
+  timing: string
+  note: string
+}
+
+export interface ContestFAQ {
+  id: number
+  question: string
+  answer: string
+}
+
+export interface VideoListItem {
+  id: number
+  title: string
+  slug: string
+  thumbnail_url: string
+  order: number
+  completed?: boolean
+}
+
+export interface VideoChapter {
+  id: number
+  timestamp_seconds: number
+  title: string
+}
+
+export interface VideoNote {
+  id: number
+  timestamp_seconds: number
+  body: string
+  created_at: string
+}
+
+export interface VideoProgress {
+  position_seconds: number
+  completed: boolean
+}
+
+export interface VideoTopic {
+  id: number
+  name: string
+  slug: string
+  videos: VideoListItem[]
+}
+
+export interface ContestDetail {
+  id: number
+  name: string
+  display_name: string
+  description: string
+  website_url: string
+  color: 'accent' | 'warn' | 'muted'
+  stipend_display: string
+  time_remaining_human: string
+  deadline_opens_at: string | null
+  deadline_closes_at: string | null
+  overview: ContestOverview | null
+  links: OverviewLink[]
+  flow_steps: ContestFlowStep[]
+  timelines: ContestTimeline[]
+  stipend_tiers: StipendTier[]
+  stipend_phases: StipendPhase[]
+  faqs: ContestFAQ[]
+  video_topics: VideoTopic[]
+}
+
+export interface VideoDetail {
+  id: number
+  title: string
+  slug: string
+  description: string
+  video_url: string
+  embed_url: string
+  is_direct_file: boolean
+  thumbnail_url: string
+  topic_name: string
+  topic_slug: string
+  chapters: VideoChapter[]
+}
+
+export interface VideoPageData {
+  contest: string
+  video: VideoDetail
+  progress: VideoProgress | null
+  notes: VideoNote[]
+  prev: VideoListItem | null
+  next: VideoListItem | null
+  related: VideoListItem[]
+}

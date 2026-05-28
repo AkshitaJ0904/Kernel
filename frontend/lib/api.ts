@@ -58,6 +58,12 @@ export const endpoints = {
   warroom: {
     programs: '/api/v1/warroom/programs/',
     program: (name: string) => `/api/v1/warroom/programs/${name}/`,
+    contest: (name: string) => `/api/v1/warroom/contests/${name}/`,
+    video: (name: string, topic: string, video: string) =>
+      `/api/v1/warroom/contests/${name}/videos/${topic}/${video}/`,
+    videoProgress: (pk: number) => `/api/v1/warroom/videos/${pk}/progress/`,
+    videoNotes: (pk: number) => `/api/v1/warroom/videos/${pk}/notes/`,
+    videoNote: (pk: number) => `/api/v1/warroom/notes/${pk}/`,
     orgs: '/api/v1/warroom/orgs/',
     tracking: '/api/v1/warroom/tracking/',
     proposals: '/api/v1/warroom/proposals/',

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import api, { endpoints } from '@/lib/api'
 import { mapRoadmapSteps } from '@/lib/utils'
@@ -40,9 +41,13 @@ export default function DashboardPage() {
   })
   const roadmapSteps = mapRoadmapSteps(roadmapData?.steps ?? [])
 
-  const now = new Date()
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  const dateStr = `// ${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} · ${days[now.getDay()]} · ist ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  // computed after mount only — avoids SSR/client clock + timezone hydration mismatch
+  const [dateStr, setDateStr] = useState('')
+  useEffect(() => {
+    const now = new Date()
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    setDateStr(`// ${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} · ${days[now.getDay()]} · ist ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`)
+  }, [])
 
   const username = data?.user?.username ?? 'aarav'
   const stats = data?.stats
