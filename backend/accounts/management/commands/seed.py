@@ -12,6 +12,7 @@ class Command(BaseCommand):
         self._seed_tracks()
         self._seed_programs()
         self._seed_orgs()
+        self._seed_contest_content()
         self._seed_contests()
         self._seed_demo_user()
         self.stdout.write(self.style.SUCCESS('seeded successfully'))
@@ -225,6 +226,119 @@ class Command(BaseCommand):
             if lfx and slug in ('kubernetes', 'envoy-proxy', 'opentelemetry'):
                 ProgramOrg.objects.get_or_create(program=lfx, org=org, year=2026)
         self.stdout.write('  orgs: done')
+
+    def _seed_contest_content(self):
+        """Example detail-page content for GSoC — proves the reusable
+        structure end to end. New contests need no code, just admin rows."""
+        from datetime import date
+        from warroom.models import (
+            Program, ContestOverview, OverviewLink, ContestFlowStep,
+            ContestTimeline, TimelineEvent, StipendTier, StipendPhase,
+            ContestFAQ, VideoTopic, Video,
+        )
+        gsoc = Program.objects.filter(name='gsoc').first()
+        if not gsoc:
+            self.stdout.write('  contest content: skipped (no gsoc program)')
+            return
+
+        ContestOverview.objects.update_or_create(
+            program=gsoc,
+            defaults={
+                'description_long': (
+                    'Google Summer of Code is a global, online program focused on bringing '
+                    'new contributors into open-source software development. Contributors work '
+                    'with an open-source organization on a 12+ week programming project under '
+                    'the guidance of mentors.'
+                ),
+                'objective': 'Get students and beginners contributing to real open-source projects with mentorship and a stipend.',
+                'eligibility': '- 18 years or older\n- New or beginner contributor to open source\n- Eligible to work in your country of residence',
+                'registration_process': (
+                    '1. Register on the GSoC site once applications open.\n'
+                    '2. Pick organizations and discuss project ideas with mentors.\n'
+                    '3. Write and submit a proposal before the deadline.'
+                ),
+                'prerequisites': '- Comfort with git and one programming language\n- Ability to read an existing codebase\n- ~30 hrs/week during the coding period',
+            },
+        )
+        links = [
+            ('official website', 'https://summerofcode.withgoogle.com', 0),
+            ('program rules', 'https://summerofcode.withgoogle.com/rules', 1),
+            ('contributor guide', 'https://google.github.io/gsocguides/student/', 2),
+        ]
+        for label, url, order in links:
+            OverviewLink.objects.get_or_create(program=gsoc, label=label, defaults={'url': url, 'order': order})
+
+        flow = [
+            ('organization list releases', 'Google announces the list of accepted mentoring organizations.'),
+            ('students explore organizations', 'Read project ideas, reach out to mentors, and pick a fit.'),
+            ('community bonding', 'Get to know the org, set up your dev environment, finalize scope.'),
+            ('proposal submission', 'Write a focused proposal and submit before the deadline.'),
+            ('selection announcement', 'Accepted contributors are announced.'),
+            ('coding period', '12+ weeks of building, with regular mentor check-ins.'),
+            ('final evaluation', 'Final submission and mentor evaluation decide pass/fail.'),
+        ]
+        for i, (title, desc) in enumerate(flow):
+            ContestFlowStep.objects.get_or_create(program=gsoc, title=title, defaults={'description': desc, 'order': i})
+
+        tl, _ = ContestTimeline.objects.get_or_create(
+            program=gsoc, name='2026 timeline', defaults={'year': 2026, 'is_current': True, 'order': 0}
+        )
+        events = [
+            ('organization announcements', date(2026, 2, 27), date(2026, 2, 27), 'Accepted orgs published.'),
+            ('proposal submission', date(2026, 3, 24), date(2026, 4, 8), 'Application window for contributors.'),
+            ('results announced', date(2026, 5, 8), date(2026, 5, 8), 'Accepted contributors revealed.'),
+            ('community bonding', date(2026, 5, 8), date(2026, 6, 1), 'Onboard with your org.'),
+            ('coding phase', date(2026, 6, 1), date(2026, 8, 25), 'Main development period.'),
+        ]
+        for i, (title, sd, ed, desc) in enumerate(events):
+            TimelineEvent.objects.get_or_create(
+                timeline=tl, title=title,
+                defaults={'start_date': sd, 'end_date': ed, 'description': desc, 'order': i},
+            )
+
+        StipendTier.objects.get_or_create(
+            program=gsoc, region='medium project (175h)',
+            defaults={'amount': 3000, 'currency': 'USD', 'note': 'tier varies by purchasing power parity', 'order': 0},
+        )
+        StipendTier.objects.get_or_create(
+            program=gsoc, region='large project (350h)',
+            defaults={'amount': 6600, 'currency': 'USD', 'note': 'tier varies by purchasing power parity', 'order': 1},
+        )
+        StipendPhase.objects.get_or_create(
+            program=gsoc, name='phase 1 — midterm',
+            defaults={'timing': 'after midterm evaluation', 'note': '~50% of the stipend', 'order': 0},
+        )
+        StipendPhase.objects.get_or_create(
+            program=gsoc, name='phase 2 — final',
+            defaults={'timing': 'after final evaluation', 'note': 'remaining stipend on passing', 'order': 1},
+        )
+
+        faqs = [
+            ('Do I need prior open-source experience?', 'No — GSoC is designed for new contributors. A clear proposal and willingness to learn matter most.'),
+            ('Can I apply to multiple organizations?', 'You can submit up to a limited number of proposals (historically 2), but quality over quantity wins.'),
+            ('Is GSoC remote?', 'Yes, it is fully online. You work with mentors remotely.'),
+        ]
+        for i, (q, a) in enumerate(faqs):
+            ContestFAQ.objects.get_or_create(program=gsoc, question=q, defaults={'answer': a, 'order': i})
+
+        topic, _ = VideoTopic.objects.get_or_create(
+            program=gsoc, slug='getting-started', defaults={'name': 'getting started', 'order': 0}
+        )
+        videos = [
+            ('what is gsoc?', 'gsoc-intro', 'A quick intro to the program and who it is for.'),
+            ('picking an organization', 'picking-an-org', 'How to evaluate orgs and project ideas.'),
+            ('writing a winning proposal', 'winning-proposal', 'Structure, scope, and timeline tips.'),
+        ]
+        for i, (title, slug, desc) in enumerate(videos):
+            Video.objects.get_or_create(
+                topic=topic, slug=slug,
+                defaults={
+                    'title': title, 'description': desc, 'order': i,
+                    # placeholder GDrive link — replace in admin
+                    'gdrive_url': 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing',
+                },
+            )
+        self.stdout.write('  contest content: done')
 
     def _seed_contests(self):
         from arena.models import Contest

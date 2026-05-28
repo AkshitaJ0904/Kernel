@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api, { endpoints } from '@/lib/api'
 import Topbar from '@/components/layout/Topbar'
@@ -213,6 +214,13 @@ export default function WarRoomPage() {
                         >
                           {expandedProgram === p.name ? '↑ orgs' : '↓ orgs'}
                         </button>
+                        <Link
+                          href={`/warroom/${p.name}`}
+                          className="btn"
+                          style={{ fontSize: 12, padding: '8px 12px', display: 'flex', alignItems: 'center' }}
+                        >
+                          enter →
+                        </Link>
                       </div>
 
                       {/* Expandable org list */}

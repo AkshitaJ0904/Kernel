@@ -106,6 +106,170 @@ class Proposal(models.Model):
         return f'{self.user.username} · {self.program.name} · v{self.version}'
 
 
+# ── Contest detail content ──────────────────────────────────────────────
+# Everything below hangs off Program (the "contest card"). Adding a new
+# contest = create a Program + content rows in the admin. No code changes.
+
+
+class ContestOverview(models.Model):
+    program = models.OneToOneField(Program, on_delete=models.CASCADE, related_name='overview')
+    description_long = models.TextField(blank=True, help_text='markdown · full description')
+    objective = models.TextField(blank=True, help_text='markdown')
+    eligibility = models.TextField(blank=True, help_text='markdown')
+    registration_process = models.TextField(blank=True, help_text='markdown')
+    prerequisites = models.TextField(blank=True, help_text='markdown')
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · overview'
+
+
+class OverviewLink(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='links')
+    label = models.CharField(max_length=120)
+    url = models.URLField()
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class ContestFlowStep(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='flow_steps')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, help_text='markdown')
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · step {self.order}: {self.title}'
+
+
+class ContestTimeline(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='timelines')
+    name = models.CharField(max_length=120, help_text='e.g. "2026 timeline"')
+    year = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_current = models.BooleanField(default=True, help_text='shown first / by default')
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-is_current', '-year', 'order']
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · {self.name}'
+
+
+class TimelineEvent(models.Model):
+    timeline = models.ForeignKey(ContestTimeline, on_delete=models.CASCADE, related_name='events')
+    title = models.CharField(max_length=200)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True)
+    link_url = models.URLField(blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'start_date']
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class StipendTier(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='stipend_tiers')
+    region = models.CharField(max_length=120, blank=True, help_text='country / region, blank = global')
+    amount = models.PositiveIntegerField()
+    currency = models.CharField(max_length=3, choices=Program.CURRENCY, default='USD')
+    note = models.CharField(max_length=300, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · {self.region or "global"} · {self.amount}'
+
+
+class StipendPhase(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='stipend_phases')
+    name = models.CharField(max_length=120, help_text='e.g. "phase 1 — midterm"')
+    timing = models.CharField(max_length=120, blank=True, help_text='e.g. "after midterm evaluation"')
+    note = models.CharField(max_length=300, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · {self.name}'
+
+
+class ContestFAQ(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='faqs')
+    question = models.CharField(max_length=300)
+    answer = models.TextField(help_text='markdown')
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Contest FAQ'
+
+    def __str__(self) -> str:
+        return self.question
+
+
+class VideoTopic(models.Model):
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='video_topics')
+    name = models.CharField(max_length=160)
+    slug = models.SlugField()
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['program', 'slug']
+
+    def __str__(self) -> str:
+        return f'{self.program.name} · {self.name}'
+
+
+class Video(models.Model):
+    topic = models.ForeignKey(VideoTopic, on_delete=models.CASCADE, related_name='videos')
+    title = models.CharField(max_length=200)
+    slug = models.SlugField()
+    description = models.TextField(blank=True, help_text='markdown')
+    gdrive_url = models.URLField(help_text='google drive share link')
+    thumbnail_url = models.URLField(blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['topic', 'slug']
+
+    def __str__(self) -> str:
+        return self.title
+
+    @property
+    def embed_url(self) -> str:
+        """Convert a Google Drive share link into an embeddable /preview URL.
+
+        Handles the common forms:
+          https://drive.google.com/file/d/<ID>/view?usp=sharing
+          https://drive.google.com/open?id=<ID>
+          https://drive.google.com/uc?id=<ID>
+        Any already-embeddable or non-drive URL is returned unchanged.
+        """
+        import re
+        url = self.gdrive_url or ''
+        match = re.search(r'/file/d/([^/]+)', url) or re.search(r'[?&]id=([^&]+)', url)
+        if match:
+            return f'https://drive.google.com/file/d/{match.group(1)}/preview'
+        return url
+
+
 class UserProgramTracking(models.Model):
     STATUS = [
         ('tracking', 'tracking'),

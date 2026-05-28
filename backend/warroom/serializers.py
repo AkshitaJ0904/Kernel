@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import Program, Org, Proposal, UserProgramTracking
+from .models import (
+    Program, Org, Proposal, UserProgramTracking,
+    ContestOverview, OverviewLink, ContestFlowStep, ContestTimeline,
+    TimelineEvent, StipendTier, StipendPhase, ContestFAQ, VideoTopic, Video,
+)
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -49,3 +53,106 @@ class UserProgramTrackingSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProgramTracking
         fields = ['program', 'orgs', 'status']
+
+
+# ── Contest detail content ──────────────────────────────────────────────
+
+
+class ContestOverviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContestOverview
+        fields = ['description_long', 'objective', 'eligibility', 'registration_process', 'prerequisites']
+
+
+class OverviewLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OverviewLink
+        fields = ['id', 'label', 'url']
+
+
+class ContestFlowStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContestFlowStep
+        fields = ['id', 'title', 'description', 'order']
+
+
+class TimelineEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimelineEvent
+        fields = ['id', 'title', 'start_date', 'end_date', 'description', 'link_url', 'order']
+
+
+class ContestTimelineSerializer(serializers.ModelSerializer):
+    events = TimelineEventSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ContestTimeline
+        fields = ['id', 'name', 'year', 'is_current', 'events']
+
+
+class StipendTierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StipendTier
+        fields = ['id', 'region', 'amount', 'currency', 'note']
+
+
+class StipendPhaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StipendPhase
+        fields = ['id', 'name', 'timing', 'note']
+
+
+class ContestFAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContestFAQ
+        fields = ['id', 'question', 'answer']
+
+
+class VideoListItemSerializer(serializers.ModelSerializer):
+    """Lightweight video entry for the sidebar tree (no embed)."""
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'slug', 'thumbnail_url', 'order']
+
+
+class VideoTopicSerializer(serializers.ModelSerializer):
+    videos = VideoListItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = VideoTopic
+        fields = ['id', 'name', 'slug', 'videos']
+
+
+class VideoDetailSerializer(serializers.ModelSerializer):
+    embed_url = serializers.CharField(read_only=True)
+    topic_name = serializers.CharField(source='topic.name', read_only=True)
+    topic_slug = serializers.CharField(source='topic.slug', read_only=True)
+
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'slug', 'description', 'gdrive_url', 'embed_url',
+                  'thumbnail_url', 'topic_name', 'topic_slug']
+
+
+class ContestDetailSerializer(serializers.ModelSerializer):
+    """Aggregate payload for the contest detail page. Drives both content
+    panes and the auto-derived sidebar (a section appears when it has data)."""
+    stipend_display = serializers.CharField(read_only=True)
+    time_remaining_human = serializers.CharField(read_only=True)
+    overview = ContestOverviewSerializer(read_only=True)
+    links = OverviewLinkSerializer(many=True, read_only=True)
+    flow_steps = ContestFlowStepSerializer(many=True, read_only=True)
+    timelines = ContestTimelineSerializer(many=True, read_only=True)
+    stipend_tiers = StipendTierSerializer(many=True, read_only=True)
+    stipend_phases = StipendPhaseSerializer(many=True, read_only=True)
+    faqs = ContestFAQSerializer(many=True, read_only=True)
+    video_topics = VideoTopicSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Program
+        fields = [
+            'id', 'name', 'display_name', 'description', 'website_url', 'color',
+            'stipend_display', 'time_remaining_human', 'deadline_opens_at',
+            'deadline_closes_at', 'overview', 'links', 'flow_steps', 'timelines',
+            'stipend_tiers', 'stipend_phases', 'faqs', 'video_topics',
+        ]

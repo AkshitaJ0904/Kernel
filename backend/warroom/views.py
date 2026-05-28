@@ -5,8 +5,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Program, Org, Proposal, UserProgramTracking
-from .serializers import ProgramSerializer, OrgSerializer, ProposalSerializer
+from django.db.models import Prefetch
+from rest_framework.generics import get_object_or_404
+from .models import (
+    Program, Org, Proposal, UserProgramTracking, VideoTopic, Video,
+)
+from .serializers import (
+    ProgramSerializer, OrgSerializer, ProposalSerializer,
+    ContestDetailSerializer, VideoDetailSerializer, VideoListItemSerializer,
+)
 
 
 class ProgramListView(generics.ListAPIView):
@@ -31,6 +38,42 @@ class OrgListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Org.objects.all()
+
+
+class ContestDetailView(generics.RetrieveAPIView):
+    """Full content bundle for the contest detail page. Read-only —
+    all CRUD happens in the Django admin."""
+    serializer_class = ContestDetailSerializer
+    lookup_field = 'name'
+
+    def get_queryset(self):
+        return Program.objects.filter(is_active=True).prefetch_related(
+            'overview', 'links', 'flow_steps', 'timelines__events',
+            'stipend_tiers', 'stipend_phases', 'faqs',
+            Prefetch('video_topics', queryset=VideoTopic.objects.prefetch_related('videos')),
+        )
+
+
+@api_view(['GET'])
+def video_detail(request, name, topic_slug, video_slug):
+    """Single video page: embed url + prev/next within the topic + related."""
+    video = get_object_or_404(
+        Video.objects.select_related('topic', 'topic__program'),
+        slug=video_slug, topic__slug=topic_slug,
+        topic__program__name=name, topic__program__is_active=True,
+    )
+    siblings = list(video.topic.videos.all())
+    idx = next((i for i, v in enumerate(siblings) if v.id == video.id), 0)
+    prev_v = siblings[idx - 1] if idx > 0 else None
+    next_v = siblings[idx + 1] if idx < len(siblings) - 1 else None
+    related = [v for v in siblings if v.id != video.id][:6]
+    return Response({
+        'contest': name,
+        'video': VideoDetailSerializer(video).data,
+        'prev': VideoListItemSerializer(prev_v).data if prev_v else None,
+        'next': VideoListItemSerializer(next_v).data if next_v else None,
+        'related': VideoListItemSerializer(related, many=True).data,
+    })
 
 
 @api_view(['POST'])
