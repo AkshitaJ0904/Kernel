@@ -4,6 +4,7 @@ from .models import (
     Program, Org, ProgramOrg, Proposal, UserProgramTracking,
     ContestOverview, OverviewLink, ContestFlowStep, ContestTimeline,
     TimelineEvent, StipendTier, StipendPhase, ContestFAQ, VideoTopic, Video,
+    VideoChapter,
 )
 
 
@@ -79,7 +80,7 @@ class ContestTimelineAdmin(ModelAdmin):
 class VideoInline(TabularInline):
     model = Video
     extra = 1
-    fields = ['order', 'title', 'slug', 'gdrive_url', 'thumbnail_url', 'description']
+    fields = ['order', 'title', 'slug', 'video_url', 'thumbnail_url', 'description']
     prepopulated_fields = {'slug': ('title',)}
 
 
@@ -90,6 +91,21 @@ class VideoTopicAdmin(ModelAdmin):
     search_fields = ['name', 'program__display_name']
     prepopulated_fields = {'slug': ('name',)}
     inlines = [VideoInline]
+
+
+class VideoChapterInline(TabularInline):
+    model = VideoChapter
+    extra = 1
+    fields = ['timestamp_seconds', 'title', 'order']
+
+
+@admin.register(Video)
+class VideoAdmin(ModelAdmin):
+    list_display = ['title', 'topic', 'order']
+    list_filter = ['topic__program', 'topic']
+    search_fields = ['title', 'slug']
+    prepopulated_fields = {'slug': ('title',)}
+    inlines = [VideoChapterInline]
 
 
 @admin.register(Org)

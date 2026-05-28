@@ -234,7 +234,7 @@ class Command(BaseCommand):
         from warroom.models import (
             Program, ContestOverview, OverviewLink, ContestFlowStep,
             ContestTimeline, TimelineEvent, StipendTier, StipendPhase,
-            ContestFAQ, VideoTopic, Video,
+            ContestFAQ, VideoTopic, Video, VideoChapter,
         )
         gsoc = Program.objects.filter(name='gsoc').first()
         if not gsoc:
@@ -325,19 +325,26 @@ class Command(BaseCommand):
             program=gsoc, slug='getting-started', defaults={'name': 'getting started', 'order': 0}
         )
         videos = [
-            ('what is gsoc?', 'gsoc-intro', 'A quick intro to the program and who it is for.'),
-            ('picking an organization', 'picking-an-org', 'How to evaluate orgs and project ideas.'),
-            ('writing a winning proposal', 'winning-proposal', 'Structure, scope, and timeline tips.'),
+            # placeholder public videos — swap for real ones in the admin
+            ('what is gsoc?', 'gsoc-intro', 'A quick intro to the program and who it is for.', 'https://www.youtube.com/watch?v=jNQXAC9IVRw'),
+            ('picking an organization', 'picking-an-org', 'How to evaluate orgs and project ideas.', 'https://youtu.be/dQw4w9WgXcQ'),
+            ('writing a winning proposal', 'winning-proposal', 'Structure, scope, and timeline tips.', 'https://www.youtube.com/watch?v=9bZkp7q19f0'),
         ]
-        for i, (title, slug, desc) in enumerate(videos):
-            Video.objects.get_or_create(
+        chapters_by_slug = {
+            'gsoc-intro': [(0, 'what is gsoc'), (30, 'who can apply'), (75, 'timeline overview'), (120, 'wrap-up')],
+            'picking-an-org': [(0, 'intro'), (45, 'evaluating activity'), (90, 'reaching out to mentors')],
+            'winning-proposal': [(0, 'intro'), (40, 'structure'), (95, 'scoping the work'), (160, 'timeline & deliverables')],
+        }
+        for i, (title, slug, desc, url) in enumerate(videos):
+            video, _ = Video.objects.update_or_create(
                 topic=topic, slug=slug,
-                defaults={
-                    'title': title, 'description': desc, 'order': i,
-                    # placeholder GDrive link — replace in admin
-                    'gdrive_url': 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing',
-                },
+                defaults={'title': title, 'description': desc, 'order': i, 'video_url': url},
             )
+            for j, (ts, ch_title) in enumerate(chapters_by_slug.get(slug, [])):
+                VideoChapter.objects.update_or_create(
+                    video=video, timestamp_seconds=ts,
+                    defaults={'title': ch_title, 'order': j},
+                )
         self.stdout.write('  contest content: done')
 
     def _seed_contests(self):

@@ -244,6 +244,25 @@ export interface VideoListItem {
   slug: string
   thumbnail_url: string
   order: number
+  completed?: boolean
+}
+
+export interface VideoChapter {
+  id: number
+  timestamp_seconds: number
+  title: string
+}
+
+export interface VideoNote {
+  id: number
+  timestamp_seconds: number
+  body: string
+  created_at: string
+}
+
+export interface VideoProgress {
+  position_seconds: number
+  completed: boolean
 }
 
 export interface VideoTopic {
@@ -279,16 +298,20 @@ export interface VideoDetail {
   title: string
   slug: string
   description: string
-  gdrive_url: string
+  video_url: string
   embed_url: string
+  is_direct_file: boolean
   thumbnail_url: string
   topic_name: string
   topic_slug: string
+  chapters: VideoChapter[]
 }
 
 export interface VideoPageData {
   contest: string
   video: VideoDetail
+  progress: VideoProgress | null
+  notes: VideoNote[]
   prev: VideoListItem | null
   next: VideoListItem | null
   related: VideoListItem[]

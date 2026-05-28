@@ -3,7 +3,22 @@ from .models import (
     Program, Org, Proposal, UserProgramTracking,
     ContestOverview, OverviewLink, ContestFlowStep, ContestTimeline,
     TimelineEvent, StipendTier, StipendPhase, ContestFAQ, VideoTopic, Video,
+    VideoChapter, VideoProgress, VideoNote,
 )
+
+
+def _completed_video_ids(context):
+    """Set of video ids the requesting user has completed (empty if anon)."""
+    request = context.get('request')
+    if not request or not request.user.is_authenticated:
+        return set()
+    cache = context.setdefault('_completed_ids', None)
+    if cache is None:
+        cache = set(VideoProgress.objects.filter(
+            user=request.user, completed=True,
+        ).values_list('video_id', flat=True))
+        context['_completed_ids'] = cache
+    return cache
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -108,11 +123,29 @@ class ContestFAQSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'answer']
 
 
+class VideoChapterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoChapter
+        fields = ['id', 'timestamp_seconds', 'title']
+
+
+class VideoNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoNote
+        fields = ['id', 'timestamp_seconds', 'body', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
 class VideoListItemSerializer(serializers.ModelSerializer):
     """Lightweight video entry for the sidebar tree (no embed)."""
+    completed = serializers.SerializerMethodField()
+
     class Meta:
         model = Video
-        fields = ['id', 'title', 'slug', 'thumbnail_url', 'order']
+        fields = ['id', 'title', 'slug', 'thumbnail_url', 'order', 'completed']
+
+    def get_completed(self, obj: Video) -> bool:
+        return obj.id in _completed_video_ids(self.context)
 
 
 class VideoTopicSerializer(serializers.ModelSerializer):
@@ -125,13 +158,15 @@ class VideoTopicSerializer(serializers.ModelSerializer):
 
 class VideoDetailSerializer(serializers.ModelSerializer):
     embed_url = serializers.CharField(read_only=True)
+    is_direct_file = serializers.BooleanField(read_only=True)
     topic_name = serializers.CharField(source='topic.name', read_only=True)
     topic_slug = serializers.CharField(source='topic.slug', read_only=True)
+    chapters = VideoChapterSerializer(many=True, read_only=True)
 
     class Meta:
         model = Video
-        fields = ['id', 'title', 'slug', 'description', 'gdrive_url', 'embed_url',
-                  'thumbnail_url', 'topic_name', 'topic_slug']
+        fields = ['id', 'title', 'slug', 'description', 'video_url', 'embed_url',
+                  'is_direct_file', 'thumbnail_url', 'topic_name', 'topic_slug', 'chapters']
 
 
 class ContestDetailSerializer(serializers.ModelSerializer):

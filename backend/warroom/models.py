@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django.conf import settings
 
@@ -241,7 +242,7 @@ class Video(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField()
     description = models.TextField(blank=True, help_text='markdown')
-    gdrive_url = models.URLField(help_text='google drive share link')
+    video_url = models.URLField(help_text='paste any video link — youtube, vimeo, google drive, or a direct .mp4')
     thumbnail_url = models.URLField(blank=True)
     order = models.PositiveSmallIntegerField(default=0)
 
@@ -254,20 +255,76 @@ class Video(models.Model):
 
     @property
     def embed_url(self) -> str:
-        """Convert a Google Drive share link into an embeddable /preview URL.
+        """Normalize a video link into an embeddable URL.
 
-        Handles the common forms:
-          https://drive.google.com/file/d/<ID>/view?usp=sharing
-          https://drive.google.com/open?id=<ID>
-          https://drive.google.com/uc?id=<ID>
-        Any already-embeddable or non-drive URL is returned unchanged.
+        Watch/share pages cannot be iframed directly, so convert them:
+          youtube.com/watch?v=<ID> · youtu.be/<ID> · shorts/<ID> → youtube.com/embed/<ID>
+          vimeo.com/<ID>                                          → player.vimeo.com/video/<ID>
+          drive.google.com/file/d/<ID>/view                       → .../file/d/<ID>/preview
+        Already-embeddable links and direct files (.mp4) are returned unchanged.
         """
-        import re
-        url = self.gdrive_url or ''
-        match = re.search(r'/file/d/([^/]+)', url) or re.search(r'[?&]id=([^&]+)', url)
-        if match:
-            return f'https://drive.google.com/file/d/{match.group(1)}/preview'
+        url = (self.video_url or '').strip()
+
+        yt = re.search(r'(?:youtube\.com/(?:watch\?v=|embed/|shorts/|live/|v/)|youtu\.be/)([\w-]{11})', url)
+        if yt:
+            return f'https://www.youtube.com/embed/{yt.group(1)}'
+
+        vm = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
+        if vm:
+            return f'https://player.vimeo.com/video/{vm.group(1)}'
+
+        gd = re.search(r'/file/d/([^/]+)', url) or re.search(r'[?&]id=([^&]+)', url)
+        if gd:
+            return f'https://drive.google.com/file/d/{gd.group(1)}/preview'
+
         return url
+
+    @property
+    def is_direct_file(self) -> bool:
+        """Direct media files should use a native <video> tag, not an iframe."""
+        return bool(re.search(r'\.(mp4|webm|ogg)(\?|$)', (self.video_url or ''), re.I))
+
+
+class VideoChapter(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='chapters')
+    timestamp_seconds = models.PositiveIntegerField(help_text='start time of this chapter, in seconds')
+    title = models.CharField(max_length=200)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['timestamp_seconds', 'order']
+
+    def __str__(self) -> str:
+        return f'{self.video.slug} · {self.timestamp_seconds}s · {self.title}'
+
+
+class VideoProgress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='video_progress')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='progress')
+    position_seconds = models.FloatField(default=0)
+    duration_seconds = models.FloatField(default=0)
+    completed = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'video']
+
+    def __str__(self) -> str:
+        return f'{self.user.username} · {self.video.slug} · {"done" if self.completed else int(self.position_seconds)}'
+
+
+class VideoNote(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='video_notes')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='notes')
+    timestamp_seconds = models.PositiveIntegerField(default=0)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['timestamp_seconds']
+
+    def __str__(self) -> str:
+        return f'{self.user.username} · {self.video.slug} @ {self.timestamp_seconds}s'
 
 
 class UserProgramTracking(models.Model):

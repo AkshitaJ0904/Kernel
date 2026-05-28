@@ -164,6 +164,9 @@ export default function ContestDetailPage({ params }: { params: { name: string }
                     </button>
                     {videosOpen && data.video_topics.map(topic => {
                       const isOpen = openTopics[topic.slug] ?? true
+                      const total = topic.videos.length
+                      const done = topic.videos.filter(v => v.completed).length
+                      const ringPct = total ? Math.round((done / total) * 100) : 0
                       return (
                         <div key={topic.id} style={{ marginLeft: 8, borderLeft: '1px solid var(--line-1)', paddingLeft: 8 }}>
                           <button
@@ -171,7 +174,16 @@ export default function ContestDetailPage({ params }: { params: { name: string }
                             className="btn btn-ghost"
                             style={{ width: '100%', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 12, borderRadius: 'var(--r-4)', padding: '6px 10px', color: 'var(--fg-3)' }}
                           >
-                            <span>{topic.name}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              {/* progress ring */}
+                              <span
+                                title={`${done}/${total} done`}
+                                style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, background: `conic-gradient(var(--accent) ${ringPct * 3.6}deg, var(--line-2) 0deg)`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                              >
+                                <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--bg-2)' }} />
+                              </span>
+                              {topic.name}
+                            </span>
                             <span style={{ color: 'var(--fg-4)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▾</span>
                           </button>
                           {isOpen && topic.videos.map(v => (
@@ -179,9 +191,9 @@ export default function ContestDetailPage({ params }: { params: { name: string }
                               key={v.id}
                               href={`/warroom/${data.name}/videos/${topic.slug}/${v.slug}`}
                               className="toc-video"
-                              style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-4)', textDecoration: 'none', padding: '5px 10px 5px 18px', borderRadius: 'var(--r-4)' }}
+                              style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontFamily: 'var(--font-mono)', fontSize: 12, color: v.completed ? 'var(--fg-3)' : 'var(--fg-4)', textDecoration: 'none', padding: '5px 10px 5px 18px', borderRadius: 'var(--r-4)' }}
                             >
-                              ▸ {v.title}
+                              <span>{v.completed ? '✓' : '▸'} {v.title}</span>
                             </Link>
                           ))}
                         </div>
